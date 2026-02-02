@@ -1,10 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
-# Build the WASM UI for pipelines-rs
+# Build pipelines-rs library and WASM UI
 
 cd "$(dirname "$0")/.."
 
+echo "Building Rust library..."
+cargo build
+
+echo ""
 echo "Building WASM UI..."
 cd wasm-ui
 wasm-pack build --target web --out-dir pkg
@@ -13,6 +17,5 @@ wasm-pack build --target web --out-dir pkg
 cp index.html pkg/
 
 echo ""
-echo "Build complete! To run:"
-echo "  cd wasm-ui/pkg && python3 -m http.server 9952"
-echo "  Then open http://localhost:9952"
+echo "Build complete!"
+echo "Run ./scripts/serve.sh to start the server"

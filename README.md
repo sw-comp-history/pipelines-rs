@@ -72,11 +72,11 @@ fn main() {
 A browser-based demo is available using Yew/WASM:
 
 ```bash
-# Build the WASM UI
-./scripts/build-wasm.sh
+# Build library and WASM UI
+./scripts/build.sh
 
 # Serve locally (port 9952)
-./scripts/serve-wasm.sh
+./scripts/serve.sh
 # Then open http://localhost:9952
 ```
 

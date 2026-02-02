@@ -7,4 +7,4 @@ cd "$(dirname "$0")/../wasm-ui/pkg"
 
 echo "Serving pipelines-rs UI at http://localhost:9952"
 echo "Press Ctrl+C to stop"
-python3 -m http.server 9952
+basic-http-server -a 0.0.0.0:9952
