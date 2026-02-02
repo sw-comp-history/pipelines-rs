@@ -616,11 +616,17 @@
             background-color: var(--accent-color);
             padding: 0.5rem 2rem;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
             font-size: 0.875rem;
             color: #bbb;
             border-top: 1px solid var(--accent-color);
+        }
+
+        .footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
         }
 
         .footer a {
@@ -632,15 +638,15 @@
             text-decoration: underline;
         }
 
-        .footer-center {
-            text-align: center;
+        .footer-left {
+            text-align: left;
+        }
+
+        .footer-build {
+            text-align: right;
             font-family: monospace;
             font-size: 0.75rem;
             color: #888;
-        }
-
-        .footer-right {
-            text-align: right;
         }
 
         /* Scrollbar styling */

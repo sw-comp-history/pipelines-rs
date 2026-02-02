@@ -616,11 +616,17 @@
             background-color: var(--accent-color);
             padding: 0.5rem 2rem;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
             font-size: 0.875rem;
             color: #bbb;
             border-top: 1px solid var(--accent-color);
+        }
+
+        .footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
         }
 
         .footer a {
@@ -632,15 +638,15 @@
             text-decoration: underline;
         }
 
-        .footer-center {
-            text-align: center;
+        .footer-left {
+            text-align: left;
+        }
+
+        .footer-build {
+            text-align: right;
             font-family: monospace;
             font-size: 0.75rem;
             color: #888;
-        }
-
-        .footer-right {
-            text-align: right;
         }
 
         /* Scrollbar styling */
@@ -665,7 +671,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="modulepreload" href="/pipelines-rs/wasm-ui-aa2e62fea6ede266.js" crossorigin="anonymous" integrity="sha384-GXwX9StKwPKs9oU+0rX1Q7HYAZaKqeDYMsbEXBftaWuNUs4k9xVDW378+fNJ9WHF"><link rel="preload" href="/pipelines-rs/wasm-ui-aa2e62fea6ede266_bg.wasm" crossorigin="anonymous" integrity="sha384-g13c9xKA+4SY06zIjq1sAcsaEj7gLb++HiA5QB6QI1/W3uBI8+z7jsSyvkD9z/+h" as="fetch" type="application/wasm"></head>
+<link rel="modulepreload" href="/pipelines-rs/wasm-ui-a02b6a9e9fe08590.js" crossorigin="anonymous" integrity="sha384-GXwX9StKwPKs9oU+0rX1Q7HYAZaKqeDYMsbEXBftaWuNUs4k9xVDW378+fNJ9WHF"><link rel="preload" href="/pipelines-rs/wasm-ui-a02b6a9e9fe08590_bg.wasm" crossorigin="anonymous" integrity="sha384-Akv5NCGtZ3fEx9+C+l8pNzMaiRfan65DyUh+WmMXDnahZzP1IkqlnnBwQ/pVQAbn" as="fetch" type="application/wasm"></head>
 <body>
     <script type="module">
         import init from './wasm_ui.js';
@@ -673,8 +679,8 @@
     </script>
 
 <script type="module">
-import init, * as bindings from '/pipelines-rs/wasm-ui-aa2e62fea6ede266.js';
-const wasm = await init({ module_or_path: '/pipelines-rs/wasm-ui-aa2e62fea6ede266_bg.wasm' });
+import init, * as bindings from '/pipelines-rs/wasm-ui-a02b6a9e9fe08590.js';
+const wasm = await init({ module_or_path: '/pipelines-rs/wasm-ui-a02b6a9e9fe08590_bg.wasm' });
 
 
 window.wasmBindings = bindings;

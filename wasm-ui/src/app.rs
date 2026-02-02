@@ -668,15 +668,19 @@ pub fn app() -> Html {
             }
 
             <footer class="footer">
-                <span>{ "80-byte fixed-width records | ASCII | Punch card format" }</span>
-                <span class="footer-center">
-                    { format!("Build: {}@{} {}", env!("BUILD_HOST"), env!("BUILD_COMMIT"), env!("BUILD_TIMESTAMP")) }
-                </span>
-                <span class="footer-right">
-                    <a href="https://github.com/softwarewrighter/pipelines-rs" target="_blank">{ "GitHub" }</a>
-                    { " | MIT License | " }
-                    { "\u{00A9} 2026 Michael A Wright" }
-                </span>
+                <div class="footer-row">
+                    <span>{ "80-byte fixed-width records | ASCII | Punch card format" }</span>
+                </div>
+                <div class="footer-row">
+                    <span class="footer-left">
+                        <a href="https://github.com/softwarewrighter/pipelines-rs" target="_blank">{ "GitHub" }</a>
+                        { " | MIT License | " }
+                        { "\u{00A9} 2026 Michael A Wright" }
+                    </span>
+                    <span class="footer-build">
+                        { format!("Build: {}@{} {}", env!("BUILD_HOST"), env!("BUILD_COMMIT"), env!("BUILD_TIMESTAMP")) }
+                    </span>
+                </div>
             </footer>
         </div>
     }
