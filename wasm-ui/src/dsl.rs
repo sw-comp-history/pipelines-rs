@@ -26,6 +26,7 @@
 //! - `NLOCATE "pattern"` - Keep records NOT containing pattern
 //! - `COUNT` - Count records and emit summary (e.g., "COUNT=42")
 //! - `CHANGE "old" "new"` - Replace occurrences of old with new (sed-like)
+//! - `LITERAL "text"` - Append a literal record to the stream
 //! - Lines starting with `#` are comments
 
 use pipelines_rs::{Pipeline, Record};
@@ -124,6 +125,8 @@ enum Command {
     Count,
     /// CHANGE "old" "new" - replace occurrences
     Change { old: String, new: String },
+    /// LITERAL "text" - append a literal record
+    Literal { text: String },
 }
 
 /// Parse DSL text into commands.
@@ -195,6 +198,8 @@ fn parse_command(line: &str) -> Result<Command, String> {
         Ok(Command::Count)
     } else if upper.starts_with("CHANGE") {
         parse_change(line)
+    } else if upper.starts_with("LITERAL") {
+        parse_literal(line)
     } else {
         Err(format!(
             "Unknown command: {}",
@@ -441,6 +446,14 @@ fn parse_change(line: &str) -> Result<Command, String> {
     Ok(Command::Change { old, new })
 }
 
+/// Parse LITERAL command.
+/// Format: LITERAL "text" or LITERAL /text/
+fn parse_literal(line: &str) -> Result<Command, String> {
+    let rest = line[7..].trim(); // Skip "LITERAL"
+    let text = parse_quoted_string(rest)?;
+    Ok(Command::Literal { text })
+}
+
 /// Apply commands to records.
 fn apply_commands(records: Vec<Record>, commands: &[Command]) -> Result<Vec<Record>, String> {
     // We need to collect and re-create pipeline for each command
@@ -532,6 +545,12 @@ fn apply_command(records: Vec<Record>, cmd: &Command) -> Result<Vec<Record>, Str
                     Record::from_str(&content)
                 })
                 .collect())
+        }
+        Command::Literal { text } => {
+            // Append a literal record to the stream
+            let mut result = records;
+            result.push(Record::from_str(text));
+            Ok(result)
         }
     }
 }
@@ -829,5 +848,78 @@ ERROR: Another problem";
         assert_eq!(output_count, 3);
         assert!(output.contains("Something went wrong"));
         assert!(!output.contains("ERROR:"));
+    }
+
+    #[test]
+    fn test_parse_literal() {
+        let cmd = parse_command(r#"LITERAL "Hello World""#).unwrap();
+        match cmd {
+            Command::Literal { text } => {
+                assert_eq!(text, "Hello World");
+            }
+            _ => panic!("Expected Literal"),
+        }
+    }
+
+    #[test]
+    fn test_parse_literal_slash_delimiters() {
+        let cmd = parse_command(r#"LITERAL /test data/"#).unwrap();
+        match cmd {
+            Command::Literal { text } => {
+                assert_eq!(text, "test data");
+            }
+            _ => panic!("Expected Literal"),
+        }
+    }
+
+    #[test]
+    fn test_execute_literal_append() {
+        let input = "LINE ONE
+LINE TWO";
+        let pipeline = r#"PIPE CONSOLE
+| LITERAL "FOOTER"
+| CONSOLE
+?"#;
+
+        let (output, input_count, output_count) = execute_pipeline(input, pipeline).unwrap();
+
+        assert_eq!(input_count, 2);
+        assert_eq!(output_count, 3);
+        assert!(output.contains("LINE ONE"));
+        assert!(output.contains("LINE TWO"));
+        assert!(output.contains("FOOTER"));
+    }
+
+    #[test]
+    fn test_execute_literal_with_empty_input() {
+        let input = "";
+        let pipeline = r#"PIPE CONSOLE
+| LITERAL "ONLY RECORD"
+| CONSOLE
+?"#;
+
+        let (output, input_count, output_count) = execute_pipeline(input, pipeline).unwrap();
+
+        assert_eq!(input_count, 0);
+        assert_eq!(output_count, 1);
+        assert_eq!(output, "ONLY RECORD");
+    }
+
+    #[test]
+    fn test_execute_multiple_literals() {
+        let input = "DATA";
+        let pipeline = r#"PIPE CONSOLE
+| LITERAL "HEADER"
+| LITERAL "FOOTER"
+| CONSOLE
+?"#;
+
+        let (output, input_count, output_count) = execute_pipeline(input, pipeline).unwrap();
+
+        assert_eq!(input_count, 1);
+        assert_eq!(output_count, 3);
+        // Order should be: DATA, HEADER, FOOTER (each LITERAL appends)
+        let lines: Vec<&str> = output.lines().collect();
+        assert_eq!(lines.len(), 3);
     }
 }
