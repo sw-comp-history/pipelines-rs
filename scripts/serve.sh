@@ -10,8 +10,8 @@ cd "$(dirname "$0")/.."
 SERVE_DIR="$(mktemp -d)"
 trap "rm -rf $SERVE_DIR" EXIT
 
-# Create symlink: $SERVE_DIR/pipelines-rs -> docs/
-ln -s "$(pwd)/docs" "$SERVE_DIR/pipelines-rs"
+# Create symlink: $SERVE_DIR/pipelines-rs -> pages/
+ln -s "$(pwd)/pages" "$SERVE_DIR/pipelines-rs"
 
 # Create root index.html that redirects to /pipelines-rs/
 cat > "$SERVE_DIR/index.html" << 'EOF'

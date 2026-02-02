@@ -38,7 +38,7 @@ tool-name --help
 **When to Use**:
 - When starting work on a new project
 - When you want standardized AI agent instructions
-- When documentation/learnings.md needs to be initialized or updated
+- When docs/learnings.md needs to be initialized or updated
 - When project processes/standards have changed
 
 **Installation**:
@@ -65,14 +65,14 @@ proact . --verbose
 ```
 
 **What It Generates**:
-- `documentation/ai_agent_instructions.md` - Comprehensive AI coding agent guidelines
+- `docs/ai_agent_instructions.md` - Comprehensive AI coding agent guidelines
   - Process-oriented workflow
   - Quality standards
   - Testing strategies
   - Tech debt avoidance
   - Playwright MCP setup
   - Project-specific guidelines (Rust, WASM, etc.)
-- `documentation/learnings.md` - Template for capturing issues and solutions
+- `docs/learnings.md` - Template for capturing issues and solutions
   - Common patterns that cause problems
   - Proactive prevention strategies
   - Root cause analysis examples
@@ -86,9 +86,9 @@ proact . --verbose
 
 **AI Agent Notes**:
 When proact generates documentation for a project, it creates a baseline. You should:
-1. Read the generated documentation/ai_agent_instructions.md
+1. Read the generated docs/ai_agent_instructions.md
 2. Follow the checkpoint process it describes
-3. Update documentation/learnings.md when you encounter issues
+3. Update docs/learnings.md when you encounter issues
 4. Run proact again if project structure changes significantly
 
 ### 2. markdown-checker - Markdown Validation Tool
@@ -100,7 +100,7 @@ When proact generates documentation for a project, it creates a baseline. You sh
 
 **When to Use**:
 - BEFORE committing any markdown changes (part of pre-commit process)
-- After editing README.md or any documentation/*.md files
+- After editing README.md or any docs/*.md files
 - When preparing documentation for GitHub (web preview compatibility)
 - To fix Unicode characters (arrows, emojis, box-drawing)
 
@@ -120,7 +120,7 @@ markdown-checker -f CONTRIBUTING.md
 # Validate all markdown in directory
 markdown-checker -f "*.md"
 
-# Validate recursively (all markdown in documentation/)
+# Validate recursively (all markdown in docs/)
 markdown-checker -p docs -f "**/*.md"
 
 # Auto-fix tree symbols
@@ -432,7 +432,7 @@ When new tools are added to `~/.local/softwarewrighter/bin/`:
 
 ### Pre-Commit Process
 
-From documentation/process.md, the following tools are used:
+From docs/process.md, the following tools are used:
 
 ```bash
 # Step 1: Tests
@@ -448,7 +448,7 @@ cargo fmt --all
 markdown-checker -f "**/*.md"
 
 # Step 6: Update documentation
-# If issues found, update documentation/learnings.md
+# If issues found, update docs/learnings.md
 # Can use proact to regenerate if major changes
 ```
 
@@ -464,7 +464,7 @@ markdown-checker -f "README.md"
 # 3. Fix any issues
 # (manually replace Unicode, or use --fix for tree symbols)
 
-# 4. If new patterns found, update documentation/learnings.md
+# 4. If new patterns found, update docs/learnings.md
 
 # 5. Optionally regenerate full docs
 proact .
@@ -491,7 +491,7 @@ git commit -m "docs: Update README with new features"
 3. **Integrate into workflow**:
    - Use markdown-checker in pre-commit process (mandatory)
    - Use proact when starting new projects
-   - Update documentation/learnings.md when encountering issues
+   - Update docs/learnings.md when encountering issues
 
 4. **Validate before committing**:
    ```bash

@@ -14,14 +14,14 @@ echo "Building WASM UI with trunk..."
 cd wasm-ui
 trunk build --public-url /pipelines-rs/
 
-# Copy dist/ to docs/ for GitHub Pages and local serving
+# Copy dist/ to pages/ for GitHub Pages and local serving
 echo ""
-echo "Copying to docs/ for GitHub Pages..."
+echo "Copying to pages/ for GitHub Pages..."
 cd ..
-rm -rf docs/*
-cp -r wasm-ui/dist/* docs/
+rm -rf pages/*
+cp -r wasm-ui/dist/* pages/
 
 echo ""
 echo "Build complete!"
 echo "Run ./scripts/serve.sh to start the server on port 9952"
-echo "GitHub Pages files are in ./docs/"
+echo "GitHub Pages files are in ./pages/"

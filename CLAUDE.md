@@ -44,14 +44,14 @@ cargo run
 **CRITICAL: Always use `./scripts/build.sh` to build the WASM UI.**
 
 - Do NOT run `trunk build`, `wasm-pack`, or other WASM commands directly
-- The build script compiles to `wasm-ui/dist/` then copies to `docs/` for serving
-- The local server (port 9952) serves from `docs/` via symlink
-- GitHub Pages also serves from `docs/`
+- The build script compiles to `wasm-ui/dist/` then copies to `pages/` for serving
+- The local server (port 9952) serves from `pages/` via symlink
+- GitHub Pages also serves from `pages/`
 
 After making WASM UI changes:
 1. Run `./scripts/build.sh`
 2. Refresh browser (shift-reload if needed)
-3. **No server restart needed** - the server serves via symlink to `docs/`
+3. **No server restart needed** - the server serves via symlink to `pages/`
 
 ## Architecture
 
@@ -107,14 +107,15 @@ This project follows strict TDD (Red/Green/Refactor) with mandatory pre-commit g
 Cargo.toml        # Workspace root with 2 members: . and wasm-ui
 src/              # Main library
 wasm-ui/          # WASM web UI
-documentation/    # Detailed docs (architecture, design, process, etc.)
+docs/             # Documentation (architecture, design, process, etc.)
+pages/            # GitHub Pages (built WASM UI)
 scripts/          # Build and serve scripts
 specs/            # Example pipeline specifications
 ```
 
 ## Key Documentation
 
-- `documentation/ai_agent_instructions.md` - Full AI agent guidelines
-- `documentation/process.md` - Development workflow
-- `documentation/architecture.md` - System design
-- `documentation/user-manual.md` - Usage examples
+- `docs/ai_agent_instructions.md` - Full AI agent guidelines
+- `docs/process.md` - Development workflow
+- `docs/architecture.md` - System design
+- `docs/user-manual.md` - Usage examples
