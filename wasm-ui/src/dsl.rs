@@ -29,6 +29,7 @@
 //! - `LITERAL "text"` - Append a literal record to the stream
 //! - `UPPER` - Convert records to uppercase
 //! - `LOWER` - Convert records to lowercase
+//! - `REVERSE` - Reverse characters in each record
 //! - Lines starting with `#` are comments
 
 use pipelines_rs::{Pipeline, Record};
@@ -133,6 +134,8 @@ enum Command {
     Upper,
     /// LOWER - convert to lowercase
     Lower,
+    /// REVERSE - reverse characters in record
+    Reverse,
 }
 
 /// Parse DSL text into commands.
@@ -210,6 +213,8 @@ fn parse_command(line: &str) -> Result<Command, String> {
         Ok(Command::Upper)
     } else if upper == "LOWER" || upper.starts_with("LOWER ") {
         Ok(Command::Lower)
+    } else if upper == "REVERSE" || upper.starts_with("REVERSE ") {
+        Ok(Command::Reverse)
     } else {
         Err(format!(
             "Unknown command: {}",
@@ -572,6 +577,15 @@ fn apply_command(records: Vec<Record>, cmd: &Command) -> Result<Vec<Record>, Str
             // Convert all records to lowercase
             Ok(Pipeline::new(records.into_iter())
                 .map(|r| Record::from_str(&r.as_str().to_lowercase()))
+                .collect())
+        }
+        Command::Reverse => {
+            // Reverse characters in each record (trim first to avoid reversing trailing spaces)
+            Ok(Pipeline::new(records.into_iter())
+                .map(|r| {
+                    let reversed: String = r.as_str().trim_end().chars().rev().collect();
+                    Record::from_str(&reversed)
+                })
                 .collect())
         }
     }
@@ -1008,5 +1022,60 @@ MIXED CASE TEXT";
 
         assert_eq!(output_count, 1);
         assert!(output.contains("test data"));
+    }
+
+    #[test]
+    fn test_parse_reverse() {
+        let cmd = parse_command("REVERSE").unwrap();
+        assert!(matches!(cmd, Command::Reverse));
+    }
+
+    #[test]
+    fn test_execute_reverse() {
+        let input = "Hello
+World";
+        let pipeline = r#"PIPE CONSOLE
+| REVERSE
+| CONSOLE
+?"#;
+
+        let (output, input_count, output_count) = execute_pipeline(input, pipeline).unwrap();
+
+        assert_eq!(input_count, 2);
+        assert_eq!(output_count, 2);
+        assert!(output.contains("olleH"));
+        assert!(output.contains("dlroW"));
+    }
+
+    #[test]
+    fn test_execute_reverse_twice() {
+        let input = "Hello World";
+        let pipeline = r#"PIPE CONSOLE
+| REVERSE
+| REVERSE
+| CONSOLE
+?"#;
+
+        let (output, _input_count, output_count) = execute_pipeline(input, pipeline).unwrap();
+
+        assert_eq!(output_count, 1);
+        // Reversing twice should give back original
+        assert_eq!(output, "Hello World");
+    }
+
+    #[test]
+    fn test_execute_reverse_palindrome() {
+        let input = "radar
+level";
+        let pipeline = r#"PIPE CONSOLE
+| REVERSE
+| CONSOLE
+?"#;
+
+        let (output, _input_count, _output_count) = execute_pipeline(input, pipeline).unwrap();
+
+        // Palindromes should be the same after reverse
+        assert!(output.contains("radar"));
+        assert!(output.contains("level"));
     }
 }
