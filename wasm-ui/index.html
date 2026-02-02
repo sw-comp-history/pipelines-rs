@@ -113,7 +113,8 @@
             padding: 0.5rem;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow-x: scroll;
+            overflow-y: auto;
         }
 
         .column-ruler {
@@ -125,12 +126,11 @@
             border-radius: 2px;
             margin-bottom: 0.5rem;
             white-space: pre;
-            overflow-x: auto;
+            min-width: max-content;
         }
 
         textarea {
             flex: 1;
-            width: 100%;
             background-color: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--accent-color);
             border-radius: 4px;
@@ -141,7 +141,8 @@
             resize: none;
             line-height: 1.5;
             white-space: pre;
-            overflow-x: auto;
+            overflow: auto;
+            min-width: 82ch;
         }
 
         textarea:focus {
@@ -163,6 +164,7 @@
             line-height: 1.5;
             overflow: auto;
             white-space: pre;
+            min-width: 82ch;
             margin: 0;
         }
 
