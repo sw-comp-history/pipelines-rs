@@ -120,8 +120,10 @@ This project follows Test-Driven Development (TDD) with strict quality gates. Se
 
 ## License
 
-TBD
+MIT License - Copyright (c) 2026 Michael A Wright
+
+See [LICENSE](LICENSE) for full text.
 
 ## Contributing
 
-TBD - See [Plan](docs/plan.md) for current priorities.
+See [Plan](docs/plan.md) for current priorities.

@@ -186,7 +186,12 @@ pub fn app() -> Html {
             </main>
 
             <footer class="footer">
-                <p>{ "80-byte fixed-width records | ASCII | Punch card format" }</p>
+                <span>{ "80-byte fixed-width records | ASCII | Punch card format" }</span>
+                <span class="footer-right">
+                    <a href="https://github.com/softwarewrighter/pipelines-rs" target="_blank">{ "GitHub" }</a>
+                    { " | MIT License | " }
+                    { "\u{00A9} 2026 Michael A Wright" }
+                </span>
             </footer>
         </div>
     }
