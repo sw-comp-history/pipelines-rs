@@ -1,0 +1,7 @@
+# Add both header and footer
+# Multiple LITERALs append in order
+PIPE CONSOLE
+| LITERAL "=== REPORT START ==="
+| LITERAL "=== REPORT END ==="
+| CONSOLE
+?

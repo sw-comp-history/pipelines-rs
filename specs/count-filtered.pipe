@@ -1,0 +1,7 @@
+# Count how many records contain "SALES"
+# Filter first, then count the matches
+PIPE CONSOLE
+| LOCATE "SALES"
+| COUNT
+| CONSOLE
+?

@@ -1,0 +1,6 @@
+# Strip "ERROR: " prefix from log messages
+# Replace with empty string to remove
+PIPE CONSOLE
+| CHANGE "ERROR: " ""
+| CONSOLE
+?

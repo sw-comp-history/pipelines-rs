@@ -1,0 +1,7 @@
+# Multiple transformations in sequence
+# Normalize: uppercase, then rename department
+PIPE CONSOLE
+| UPPER
+| CHANGE "SALES" "REVENUE"
+| CONSOLE
+?

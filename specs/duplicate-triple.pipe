@@ -1,0 +1,6 @@
+# Triple each record for stress testing
+# Useful for generating test data
+PIPE CONSOLE
+| DUPLICATE 3
+| CONSOLE
+?

@@ -1,0 +1,6 @@
+# Find all records containing "ERROR"
+# LOCATE is grep-like pattern matching
+PIPE CONSOLE
+| LOCATE "ERROR"
+| CONSOLE
+?

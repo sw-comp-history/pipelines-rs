@@ -1,0 +1,6 @@
+# Count total records
+# Emits a single summary record
+PIPE CONSOLE
+| COUNT
+| CONSOLE
+?

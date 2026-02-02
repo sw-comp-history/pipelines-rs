@@ -1,0 +1,6 @@
+# Rename department from SALES to MARKETING
+# CHANGE is sed-like string replacement
+PIPE CONSOLE
+| CHANGE "SALES" "MKTG"
+| CONSOLE
+?

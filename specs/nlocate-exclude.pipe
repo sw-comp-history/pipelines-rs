@@ -1,0 +1,6 @@
+# Exclude records containing "DEBUG"
+# NLOCATE is the inverse of LOCATE
+PIPE CONSOLE
+| NLOCATE "DEBUG"
+| CONSOLE
+?

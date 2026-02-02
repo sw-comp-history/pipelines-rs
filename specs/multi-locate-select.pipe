@@ -1,0 +1,7 @@
+# Filter and extract specific fields
+# Find ENGINEER records, show name only
+PIPE CONSOLE
+| LOCATE "ENGINEER"
+| SELECT 0,8,0; 8,10,8
+| CONSOLE
+?

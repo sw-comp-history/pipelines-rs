@@ -1,0 +1,6 @@
+# Double each record
+# Input A,B becomes A,A,B,B
+PIPE CONSOLE
+| DUPLICATE 2
+| CONSOLE
+?

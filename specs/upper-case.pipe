@@ -1,0 +1,6 @@
+# Convert all text to uppercase
+# Useful for normalization
+PIPE CONSOLE
+| UPPER
+| CONSOLE
+?

@@ -1,0 +1,6 @@
+# Reverse characters in each record
+# Fun transformation - palindromes unchanged
+PIPE CONSOLE
+| REVERSE
+| CONSOLE
+?

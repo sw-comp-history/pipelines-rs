@@ -1,0 +1,6 @@
+# Convert all text to lowercase
+# Useful for case-insensitive comparison prep
+PIPE CONSOLE
+| LOWER
+| CONSOLE
+?

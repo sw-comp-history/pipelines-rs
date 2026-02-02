@@ -1,0 +1,7 @@
+# Get records 3-5 (skip first 2, take next 3)
+# Useful for pagination
+PIPE CONSOLE
+| SKIP 2
+| TAKE 3
+| CONSOLE
+?

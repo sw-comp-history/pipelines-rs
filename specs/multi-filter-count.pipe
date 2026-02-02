@@ -1,0 +1,8 @@
+# Complex pipeline: filter, transform, count
+# Find SALES records, show count of matches
+PIPE CONSOLE
+| LOCATE "SALES"
+| UPPER
+| COUNT
+| CONSOLE
+?

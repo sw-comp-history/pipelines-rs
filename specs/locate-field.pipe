@@ -1,0 +1,6 @@
+# Find SALES in the department field only (positions 18-28)
+# More precise than searching entire record
+PIPE CONSOLE
+| LOCATE 18,10 "SALES"
+| CONSOLE
+?

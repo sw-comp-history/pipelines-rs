@@ -1,0 +1,6 @@
+# Add a footer to the output
+# LITERAL appends a record to the stream
+PIPE CONSOLE
+| LITERAL "--- END OF REPORT ---"
+| CONSOLE
+?
