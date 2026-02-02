@@ -1,0 +1,3 @@
+# Filter records for SALES department
+# Input: Employee records (Last, First, Dept, Salary)
+PIPE FILTER 18,10 = "SALES"?

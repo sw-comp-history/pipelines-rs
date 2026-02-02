@@ -1,0 +1,3 @@
+# Exclude marketing department
+# Shows all employees except MARKETING
+PIPE FILTER 18,10 != "MARKETING"?

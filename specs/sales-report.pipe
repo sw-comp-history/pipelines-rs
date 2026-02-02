@@ -1,0 +1,4 @@
+# Sales department report
+# Filter SALES and extract name + salary
+PIPE FILTER 18,10 = "SALES"
+   | SELECT 0,8,0; 28,8,8?

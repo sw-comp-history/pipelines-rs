@@ -47,6 +47,8 @@ pub struct PipelinePanelProps {
     pub value: String,
     pub on_change: Callback<String>,
     pub on_run: Callback<()>,
+    pub on_load: Callback<web_sys::Event>,
+    pub on_save: Callback<()>,
 }
 
 #[function_component(PipelinePanel)]
@@ -66,13 +68,36 @@ pub fn pipeline_panel(props: &PipelinePanelProps) -> Html {
         })
     };
 
+    let on_load_change = {
+        let on_load = props.on_load.clone();
+        Callback::from(move |e: web_sys::Event| {
+            on_load.emit(e);
+        })
+    };
+
+    let on_save_click = {
+        let on_save = props.on_save.clone();
+        Callback::from(move |_| {
+            on_save.emit(());
+        })
+    };
+
     html! {
         <div class="panel pipeline-panel">
             <div class="panel-header">
                 <h2>{ "Pipeline" }</h2>
-                <button class="run-button" onclick={on_run_click}>
-                    { "Run" }
-                </button>
+                <div class="button-group">
+                    <label class="file-button">
+                        { "Load" }
+                        <input type="file" accept=".pipe" onchange={on_load_change} />
+                    </label>
+                    <button class="save-button" onclick={on_save_click}>
+                        { "Save" }
+                    </button>
+                    <button class="run-button" onclick={on_run_click}>
+                        { "Run" }
+                    </button>
+                </div>
             </div>
             <div class="panel-content">
                 <textarea

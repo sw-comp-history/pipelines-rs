@@ -1,8 +1,11 @@
 //! Main application component.
 
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
+use web_sys::{Blob, HtmlAnchorElement, HtmlInputElement, Url};
 use yew::prelude::*;
 
-use crate::components::{OutputPanel, PipelinePanel, InputPanel};
+use crate::components::{InputPanel, OutputPanel, PipelinePanel};
 use crate::dsl::execute_pipeline;
 
 /// Main application state.
@@ -92,6 +95,63 @@ pub fn app() -> Html {
         })
     };
 
+    let on_load = {
+        let state = state.clone();
+        Callback::from(move |e: web_sys::Event| {
+            let state = state.clone();
+            let input: HtmlInputElement = e.target_unchecked_into();
+            if let Some(files) = input.files() {
+                if let Some(file) = files.get(0) {
+                    let reader = web_sys::FileReader::new().unwrap();
+                    let reader_clone = reader.clone();
+
+                    let onload = Closure::wrap(Box::new(move |_: web_sys::Event| {
+                        if let Ok(result) = reader_clone.result() {
+                            if let Some(text) = result.as_string() {
+                                let mut new_state = (*state).clone();
+                                new_state.pipeline_text = text;
+                                state.set(new_state);
+                            }
+                        }
+                    }) as Box<dyn FnMut(_)>);
+
+                    reader.set_onload(Some(onload.as_ref().unchecked_ref()));
+                    onload.forget();
+
+                    let _ = reader.read_as_text(&file);
+                }
+            }
+            // Clear the input so the same file can be loaded again
+            input.set_value("");
+        })
+    };
+
+    let on_save = {
+        let state = state.clone();
+        Callback::from(move |_| {
+            let text = state.pipeline_text.clone();
+            let array = js_sys::Array::new();
+            array.push(&JsValue::from_str(&text));
+
+            let blob = Blob::new_with_str_sequence(&array).unwrap();
+            let url = Url::create_object_url_with_blob(&blob).unwrap();
+
+            let window = web_sys::window().unwrap();
+            let document = window.document().unwrap();
+            let anchor: HtmlAnchorElement = document
+                .create_element("a")
+                .unwrap()
+                .dyn_into()
+                .unwrap();
+
+            anchor.set_href(&url);
+            anchor.set_download("pipeline.pipe");
+            anchor.click();
+
+            let _ = Url::revoke_object_url(&url);
+        })
+    };
+
     html! {
         <div class="app">
             <header class="header">
@@ -110,6 +170,8 @@ pub fn app() -> Html {
                         value={state.pipeline_text.clone()}
                         on_change={on_pipeline_change}
                         on_run={on_run}
+                        on_load={on_load}
+                        on_save={on_save}
                     />
 
                     <OutputPanel
