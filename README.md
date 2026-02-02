@@ -6,6 +6,8 @@ A Rust library demonstrating historical mainframe-style batch processing with 80
 
 This project shows how data pipelines worked on mainframe systems, where data was processed as fixed-width 80-byte records (matching the width of punch cards). Operations like FILTER, SELECT, REFORMAT, and MERGE were used to transform datasets in batch processing jobs.
 
+**Live Demo:** [https://softwarewrighter.github.io/pipelines-rs/](https://softwarewrighter.github.io/pipelines-rs/)
+
 ![pipelines-rs Web UI](images/screenshot.png?ts=1770012975000)
 
 ## Status
@@ -13,7 +15,7 @@ This project shows how data pipelines worked on mainframe systems, where data wa
 **Version**: 0.1.0 (pre-release)
 **Edition**: Rust 2024
 
-Core pipeline functionality is complete. See [Status](docs/status.md) for details.
+Core pipeline functionality is complete. See [Status](documentation/status.md) for details.
 
 ## Features
 
@@ -60,15 +62,15 @@ fn main() {
 
 | Document | Description |
 |----------|-------------|
-| [User Manual](docs/user-manual.md) | Usage guide with examples |
-| [Architecture](docs/architecture.md) | System design and component overview |
-| [PRD](docs/prd.md) | Product requirements and goals |
-| [Design](docs/design.md) | Technical design decisions |
-| [Plan](docs/plan.md) | Development roadmap and milestones |
-| [Status](docs/status.md) | Current project status |
-| [Process](docs/process.md) | Development workflow and standards |
-| [Tools](docs/tools.md) | Development tools reference |
-| [AI Agent Instructions](docs/ai_agent_instructions.md) | Guidelines for AI coding agents |
+| [User Manual](documentation/user-manual.md) | Usage guide with examples |
+| [Architecture](documentation/architecture.md) | System design and component overview |
+| [PRD](documentation/prd.md) | Product requirements and goals |
+| [Design](documentation/design.md) | Technical design decisions |
+| [Plan](documentation/plan.md) | Development roadmap and milestones |
+| [Status](documentation/status.md) | Current project status |
+| [Process](documentation/process.md) | Development workflow and standards |
+| [Tools](documentation/tools.md) | Development tools reference |
+| [AI Agent Instructions](documentation/ai_agent_instructions.md) | Guidelines for AI coding agents |
 
 ## Web UI
 
@@ -109,7 +111,7 @@ cargo run
 
 ## Development
 
-This project follows Test-Driven Development (TDD) with strict quality gates. See [Process](docs/process.md) for the complete development workflow.
+This project follows Test-Driven Development (TDD) with strict quality gates. See [Process](documentation/process.md) for the complete development workflow.
 
 ### Pre-commit Checklist
 
@@ -126,4 +128,4 @@ See [LICENSE](LICENSE) for full text.
 
 ## Contributing
 
-See [Plan](docs/plan.md) for current priorities.
+See [Plan](documentation/plan.md) for current priorities.

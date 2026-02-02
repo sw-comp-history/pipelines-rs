@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pipelines-rs - Mainframe Pipeline Demo</title>
+    <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --panel-bg: #16213e;
+            --text-color: #e8e8e8;
+            --accent-color: #0f3460;
+            --highlight-color: #e94560;
+            --header-color: #ff9f1c;
+            --success-color: #00d26a;
+            --mono-font: 'IBM Plex Mono', 'Consolas', 'Monaco', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--mono-font);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            background-color: var(--accent-color);
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--highlight-color);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: var(--header-color);
+            margin: 0;
+        }
+
+        .subtitle {
+            font-size: 0.875rem;
+            color: var(--header-color);
+        }
+
+        .main {
+            flex: 1;
+            padding: 1rem;
+        }
+
+        .panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            height: calc(100vh - 150px);
+        }
+
+        @media (max-width: 1200px) {
+            .panels {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background-color: var(--accent-color);
+            border-bottom: 1px solid var(--highlight-color);
+        }
+
+        .panel-header h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--header-color);
+        }
+
+        .hint {
+            font-size: 0.875rem;
+            color: var(--header-color);
+        }
+
+        .stats {
+            font-size: 0.875rem;
+            color: #bbb;
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            overflow-x: scroll;
+            overflow-y: auto;
+        }
+
+        .column-ruler {
+            font-family: var(--mono-font);
+            font-size: 1rem;
+            color: #999;
+            padding: 0.25rem calc(0.75rem + 1px);
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 2px;
+            margin-bottom: 0.5rem;
+            white-space: pre;
+            min-width: max-content;
+        }
+
+        textarea {
+            flex: 1;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            color: var(--text-color);
+            font-family: var(--mono-font);
+            font-size: 1rem;
+            padding: 0.75rem;
+            resize: none;
+            line-height: 1.5;
+            white-space: pre;
+            overflow: auto;
+            min-width: 82ch;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--highlight-color);
+        }
+
+        textarea::placeholder {
+            color: #555;
+        }
+
+        .record-output {
+            flex: 1;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            padding: 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            overflow: auto;
+            white-space: pre;
+            min-width: 82ch;
+            margin: 0;
+        }
+
+        .error {
+            background-color: rgba(233, 69, 96, 0.2);
+            border: 1px solid var(--highlight-color);
+            border-radius: 4px;
+            padding: 0.75rem;
+            color: var(--highlight-color);
+            font-size: 1rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .run-button, .save-button, .file-button {
+            background-color: var(--highlight-color);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-family: var(--mono-font);
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: background-color 0.2s;
+        }
+
+        .file-button {
+            display: inline-block;
+        }
+
+        .file-button input[type="file"] {
+            display: none;
+        }
+
+        .save-button, .file-button {
+            background-color: var(--accent-color);
+            border: 1px solid var(--header-color);
+        }
+
+        .run-button:hover, .save-button:hover, .file-button:hover {
+            background-color: #ff6b6b;
+        }
+
+        .run-button:active, .save-button:active, .file-button:active {
+            background-color: #c73e54;
+        }
+
+        .dsl-help {
+            margin-top: 0.5rem;
+        }
+
+        .dsl-help summary {
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: #bbb;
+            padding: 0.25rem;
+        }
+
+        .dsl-help summary:hover {
+            color: var(--text-color);
+        }
+
+        .dsl-help pre {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            padding: 0.5rem;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .footer {
+            background-color: var(--accent-color);
+            padding: 0.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            color: #bbb;
+            border-top: 1px solid var(--accent-color);
+        }
+
+        .footer a {
+            color: var(--header-color);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-right {
+            text-align: right;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--panel-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--highlight-color);
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <script type="module">
+        import init from './wasm_ui.js';
+        init();
+    </script>
+</body>
+</html>

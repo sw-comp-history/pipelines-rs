@@ -50,8 +50,8 @@ Plan -> RED (Test) -> GREEN (Code) -> REFACTOR -> Review -> Pre-Commit -> Commit
 ```
 
 **Planning**:
-- Review PRD (docs/prd.md) for requirements
-- Check design doc (docs/design.md) for patterns
+- Review PRD (documentation/prd.md) for requirements
+- Check design doc (documentation/design.md) for patterns
 - Update plan.md with task breakdown
 - Create mental model before coding
 - **Write test scenarios first** (TDD planning)
@@ -82,7 +82,7 @@ Plan -> RED (Test) -> GREEN (Code) -> REFACTOR -> Review -> Pre-Commit -> Commit
 
 **Review**:
 - Self-review changes before committing
-- Check against docs/learnings.md for common mistakes
+- Check against documentation/learnings.md for common mistakes
 - Verify all acceptance criteria met
 - Ensure all tests pass
 
@@ -90,7 +90,7 @@ Plan -> RED (Test) -> GREEN (Code) -> REFACTOR -> Review -> Pre-Commit -> Commit
 - Follow pre-commit quality process (below)
 - All steps must pass - NO EXCEPTIONS
 - Fix issues, never disable checks
-- Update docs/learnings.md if issues found
+- Update documentation/learnings.md if issues found
 
 **Commit**:
 - Write clear, detailed commit messages
@@ -206,9 +206,9 @@ sw-checklist
 
 #### Step 7: Update Documentation
 
-**CRITICAL**: If any of the previous steps required changes, update docs/learnings.md
+**CRITICAL**: If any of the previous steps required changes, update documentation/learnings.md
 
-**Update docs/learnings.md if**:
+**Update documentation/learnings.md if**:
 - Clippy warnings were found (document the pattern)
 - Tests failed (document root cause)
 - Bug was fixed (document prevention strategy)
@@ -223,9 +223,9 @@ When updating learnings.md for bugs or test failures:
 **Also Update**:
 - README.md if features added or changed
 - CLAUDE.md if development patterns changed
-- docs/status.md with progress
-- docs/architecture.md if system design changed
-- docs/design.md if design decisions made
+- documentation/status.md with progress
+- documentation/architecture.md if system design changed
+- documentation/design.md if design decisions made
 
 #### Step 8: Final Review
 
@@ -237,7 +237,7 @@ When updating learnings.md for bugs or test failures:
 - [ ] .gitignore appropriate
 - [ ] sw-checklist passes
 - [ ] Documentation updated
-- [ ] docs/learnings.md updated if issues found
+- [ ] documentation/learnings.md updated if issues found
 - [ ] No commented-out code
 - [ ] No debug print statements
 - [ ] Commit message clear and detailed
