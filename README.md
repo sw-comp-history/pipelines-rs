@@ -8,7 +8,7 @@ This project shows how data pipelines worked on mainframe systems, where data wa
 
 **Live Demo:** [https://softwarewrighter.github.io/pipelines-rs/](https://softwarewrighter.github.io/pipelines-rs/)
 
-![pipelines-rs Web UI](images/screenshot.png?ts=1770059302000)
+![pipelines-rs Web UI](images/screenshot.png?ts=1770065141000)
 
 ## Status
 
