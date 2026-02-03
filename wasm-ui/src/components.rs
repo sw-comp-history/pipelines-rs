@@ -146,12 +146,23 @@ pub fn pipeline_panel(props: &PipelinePanelProps) -> Html {
 | <stage>                  - Apply transformation stage
 | CONSOLE                  - End: write to Output Records
 ?                          - End of pipeline
+# comment                  - Comments ignored
+
+CHANGE "old" "new"         - Replace text in records
+COUNT                      - Output record count
+DUPLICATE n                - Repeat each record n times
 FILTER pos,len = "v"       - Keep matching records
 FILTER pos,len != "v"      - Omit matching records
+LITERAL "text"             - Append literal record
+LOCATE "pattern"           - Keep records containing pattern
+LOCATE pos,len "pattern"   - Keep if field contains pattern
+LOWER                      - Convert to lowercase
+NLOCATE "pattern"          - Keep records NOT containing pattern
+REVERSE                    - Reverse characters in record
 SELECT p,l,d; p,l,d        - Select fields (src,len,dest)
-TAKE n                     - Keep first n records
 SKIP n                     - Skip first n records
-# comment                  - Comments ignored"#}</pre>
+TAKE n                     - Keep first n records
+UPPER                      - Convert to uppercase"#}</pre>
                     </details>
                 </div>
             </div>

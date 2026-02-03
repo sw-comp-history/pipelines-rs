@@ -92,7 +92,26 @@ PIPE CONSOLE
 ?
 ```
 
-### Stages (Verbs)
+### Stages (Alphabetical)
+
+#### CHANGE
+
+Replaces text in records (like sed).
+
+**Syntax**:
+```
+CHANGE "old" "new"
+```
+
+**Parameters**:
+- `old` - Text to find
+- `new` - Replacement text (can be empty)
+
+**Examples**:
+```
+CHANGE "SALES" "MKTG"       # Replace SALES with MKTG
+CHANGE "ERROR: " ""         # Remove "ERROR: " prefix
+```
 
 #### CONSOLE
 
@@ -107,6 +126,44 @@ PIPE CONSOLE      # Read input
 | ...
 | CONSOLE         # Write output
 ?
+```
+
+#### COUNT
+
+Counts records and outputs a single summary record.
+
+**Syntax**:
+```
+COUNT
+```
+
+**Output**: A single record like `COUNT=42`
+
+**Example**:
+```
+PIPE CONSOLE
+| FILTER 18,10 = "SALES"
+| COUNT
+| CONSOLE
+?
+```
+Outputs: `COUNT=3` (if 3 SALES records)
+
+#### DUPLICATE
+
+Repeats each record n times.
+
+**Syntax**:
+```
+DUPLICATE n
+```
+
+**Parameter**:
+- `n` - Number of copies (must be >= 1)
+
+**Example**:
+```
+DUPLICATE 2                 # Each record appears twice
 ```
 
 #### FILTER
@@ -128,6 +185,87 @@ FILTER pos,len != "value"   # Keep records where field does NOT equal value
 ```
 FILTER 18,10 = "SALES"      # Keep records with "SALES" at columns 18-27
 FILTER 0,8 != "SMITH"       # Remove records with "SMITH" at columns 0-7
+```
+
+#### LITERAL
+
+Appends a literal text record to the stream.
+
+**Syntax**:
+```
+LITERAL "text"
+```
+
+**Parameter**:
+- `text` - The literal text to add as a record
+
+**Example**:
+```
+LITERAL "--- END OF REPORT ---"   # Add footer record
+```
+
+#### LOCATE
+
+Keeps records containing a pattern (like grep).
+
+**Syntax**:
+```
+LOCATE "pattern"              # Search entire record
+LOCATE pos,len "pattern"      # Search specific field only
+```
+
+**Parameters**:
+- `pattern` - Text to search for
+- `pos,len` - Optional field to restrict search
+
+**Examples**:
+```
+LOCATE "ERROR"                # Keep records containing ERROR
+LOCATE 18,10 "SALES"          # Keep if field at 18,10 contains SALES
+```
+
+#### LOWER
+
+Converts all records to lowercase.
+
+**Syntax**:
+```
+LOWER
+```
+
+**Example**:
+```
+LOWER                         # "SMITH" becomes "smith"
+```
+
+#### NLOCATE
+
+Keeps records NOT containing a pattern (inverse of LOCATE).
+
+**Syntax**:
+```
+NLOCATE "pattern"             # Search entire record
+NLOCATE pos,len "pattern"     # Search specific field only
+```
+
+**Examples**:
+```
+NLOCATE "ERROR"               # Keep records without ERROR
+NLOCATE 18,10 "SALES"         # Keep if field doesn't contain SALES
+```
+
+#### REVERSE
+
+Reverses characters in each record.
+
+**Syntax**:
+```
+REVERSE
+```
+
+**Example**:
+```
+REVERSE                       # "Hello" becomes "olleH"
 ```
 
 #### SELECT
@@ -158,6 +296,23 @@ Into:
 SMITH   00050000
 ```
 
+#### SKIP
+
+Skips the first N records, keeping the rest.
+
+**Syntax**:
+```
+SKIP n
+```
+
+**Parameter**:
+- `n` - Number of records to skip
+
+**Example**:
+```
+SKIP 3                      # Skip first 3 records, keep the rest
+```
+
 #### TAKE
 
 Keeps only the first N records.
@@ -175,21 +330,18 @@ TAKE n
 TAKE 5                      # Keep first 5 records
 ```
 
-#### SKIP
+#### UPPER
 
-Skips the first N records, keeping the rest.
+Converts all records to uppercase.
 
 **Syntax**:
 ```
-SKIP n
+UPPER
 ```
-
-**Parameter**:
-- `n` - Number of records to skip
 
 **Example**:
 ```
-SKIP 3                      # Skip first 3 records, keep the rest
+UPPER                       # "Smith" becomes "SMITH"
 ```
 
 ---
