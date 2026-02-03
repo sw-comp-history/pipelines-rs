@@ -41,6 +41,59 @@
 
 use crate::{Pipeline, Record};
 
+/// Debug callback information for stage-by-stage execution.
+pub struct DebugCallbacks {
+    pub on_stage_start: Option<Box<dyn Fn(usize, &str) + 'static>>,
+    pub on_stage_complete: Option<Box<dyn Fn(usize, usize) + 'static>>,
+}
+
+impl DebugCallbacks {
+    pub fn new() -> Self {
+        Self {
+            on_stage_start: None,
+            on_stage_complete: None,
+        }
+    }
+}
+
+/// Debug information for a single pipeline stage execution.
+#[derive(Debug, Clone)]
+pub struct DebugInfo {
+    pub stage_name: String,
+    pub input_count: usize,
+    pub output_count: usize,
+    pub input_records: Option<Vec<Record>>,
+    pub output_records: Option<Vec<Record>>,
+}
+
+impl DebugInfo {
+    pub fn new(stage_name: String, input_count: usize, output_count: usize) -> Self {
+        Self {
+            stage_name,
+            input_count,
+            output_count,
+            input_records: None,
+            output_records: None,
+        }
+    }
+
+    pub fn with_records(
+        stage_name: String,
+        input_count: usize,
+        output_count: usize,
+        input_records: Vec<Record>,
+        output_records: Vec<Record>,
+    ) -> Self {
+        Self {
+            stage_name,
+            input_count,
+            output_count,
+            input_records: Some(input_records),
+            output_records: Some(output_records),
+        }
+    }
+}
+
 /// Execute a pipeline defined by DSL text on input records.
 ///
 /// Returns (output_text, input_count, output_count) on success.
@@ -114,6 +167,101 @@ pub fn execute_pipeline(
         .join("\n");
 
     Ok((output_text, input_count, output_count))
+}
+
+/// Execute a pipeline with debug callbacks for stage-by-stage inspection.
+///
+/// Returns (output_text, input_count, output_count, debug_info) on success.
+pub fn execute_pipeline_debug(
+    input_text: &str,
+    pipeline_text: &str,
+    debug: &Option<DebugCallbacks>,
+) -> Result<(String, usize, usize, Vec<DebugInfo>), String> {
+    let commands = parse_commands(pipeline_text)?;
+
+    if commands.is_empty() {
+        return Err("Pipeline is empty".to_string());
+    }
+
+    if commands.len() < 2 {
+        return Err("Pipeline must have at least 2 stages".to_string());
+    }
+
+    let first = commands.first().unwrap();
+    if !first.can_be_first() {
+        return Err(format!(
+            "{} cannot be first stage (try CONSOLE, LITERAL, or HOLE)",
+            first.name()
+        ));
+    }
+
+    let input_records: Vec<Record> = match first {
+        Command::Console => input_text
+            .lines()
+            .filter(|line| !line.is_empty())
+            .map(Record::from_str)
+            .collect(),
+        Command::Literal { text } => {
+            vec![Record::from_str(text)]
+        }
+        Command::Hole => {
+            vec![]
+        }
+        _ => {
+            return Err(format!("Unhandled source stage: {}", first.name()));
+        }
+    };
+
+    let input_count = input_records.len();
+    let mut debug_info: Vec<DebugInfo> = Vec::new();
+    let mut current_records = input_records;
+
+    for (idx, cmd) in commands.iter().enumerate() {
+        let stage_name = format!("{:?}", cmd);
+
+        if let Some(debug) = debug {
+            if let Some(on_start) = &debug.on_stage_start {
+                on_start(idx, &stage_name);
+            }
+        }
+
+        let input_count_stage = current_records.len();
+        let input_records_clone = debug.as_ref().map(|_| current_records.clone());
+
+        current_records = apply_command(current_records, cmd)?;
+
+        let output_count_stage = current_records.len();
+        let output_records_clone = debug.as_ref().map(|_| current_records.clone());
+
+        if let Some(debug) = debug {
+            if let Some(on_complete) = &debug.on_stage_complete {
+                on_complete(idx, output_count_stage);
+            }
+        }
+
+        let info = if input_records_clone.is_some() {
+            DebugInfo::with_records(
+                stage_name,
+                input_count_stage,
+                output_count_stage,
+                input_records_clone.unwrap(),
+                output_records_clone.unwrap(),
+            )
+        } else {
+            DebugInfo::new(stage_name, input_count_stage, output_count_stage)
+        };
+
+        debug_info.push(info);
+    }
+
+    let output_count = current_records.len();
+    let output_text = current_records
+        .iter()
+        .map(|r| r.as_str().trim_end())
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    Ok((output_text, input_count, output_count, debug_info))
 }
 
 /// Parsed pipeline command.
@@ -783,7 +931,9 @@ mod tests {
 | CONSOLE"#;
         let result = execute_pipeline(input, pipeline);
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("FILTER cannot be the first stage"));
+        assert!(result
+            .unwrap_err()
+            .contains("FILTER cannot be the first stage"));
     }
 
     #[test]
@@ -868,7 +1018,11 @@ DOE     JANE      SALES     00060000";
         let result = execute_pipeline("", pipeline);
         assert!(result.is_err(), "Expected error but got: {:?}", result);
         let err = result.unwrap_err();
-        assert!(err.contains("FILTER cannot be the first stage"), "Got: {}", err);
+        assert!(
+            err.contains("FILTER cannot be the first stage"),
+            "Got: {}",
+            err
+        );
     }
 
     #[test]
@@ -931,5 +1085,56 @@ DOE     JANE      SALES     00060000";
         assert_eq!(input_count, 1); // CONSOLE read 1 record
         assert_eq!(output_count, 0); // HOLE discarded it
         assert!(output.is_empty());
+    }
+
+    #[test]
+    fn test_debug_info_new() {
+        let info = DebugInfo::new("CONSOLE".to_string(), 3, 2);
+        assert_eq!(info.stage_name, "CONSOLE");
+        assert_eq!(info.input_count, 3);
+        assert_eq!(info.output_count, 2);
+        assert!(info.input_records.is_none());
+        assert!(info.output_records.is_none());
+    }
+
+    #[test]
+    fn test_debug_info_with_records() {
+        let input_records = vec![
+            Record::from_str("ABC"),
+            Record::from_str("DEF"),
+            Record::from_str("GHI"),
+        ];
+        let output_records = vec![Record::from_str("ABC"), Record::from_str("DEF")];
+        let info = DebugInfo::with_records(
+            "FILTER".to_string(),
+            3,
+            2,
+            input_records.clone(),
+            output_records.clone(),
+        );
+        assert_eq!(info.stage_name, "FILTER");
+        assert_eq!(info.input_count, 3);
+        assert_eq!(info.output_count, 2);
+        assert!(info.input_records.is_some());
+        assert!(info.output_records.is_some());
+        assert_eq!(info.input_records.unwrap(), input_records);
+        assert_eq!(info.output_records.unwrap(), output_records);
+    }
+
+    #[test]
+    fn test_execute_pipeline_debug_without_callbacks() {
+        let pipeline = r#"PIPE CONSOLE
+| CONSOLE"#;
+        let input = "A\nB\nC";
+        let (output, input_count, output_count, debug_info) =
+            execute_pipeline_debug(input, pipeline, &None).unwrap();
+        assert_eq!(input_count, 3);
+        assert_eq!(output_count, 3);
+        assert_eq!(output, "A\nB\nC");
+        assert_eq!(debug_info.len(), 2);
+        assert_eq!(debug_info[0].stage_name, "Console");
+        assert_eq!(debug_info[1].stage_name, "Console");
+        assert!(debug_info[0].input_records.is_none());
+        assert!(debug_info[0].output_records.is_none());
     }
 }
