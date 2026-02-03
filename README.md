@@ -6,7 +6,7 @@ A Rust library demonstrating historical mainframe-style batch processing with 80
 
 This project shows how data pipelines worked on mainframe systems, where data was processed as fixed-width 80-byte records (matching the width of punch cards). Operations like FILTER, SELECT, REFORMAT, and MERGE were used to transform datasets in batch processing jobs.
 
-**Live Demo:** [https://softwarewrighter.github.io/pipelines-rs/](https://softwarewrighter.github.io/pipelines-rs/)
+**Live Demo:** [https://sw-comp-history.github.io/pipelines-rs/](https://sw-comp-history.github.io/pipelines-rs/)
 
 ![pipelines-rs Web UI](images/screenshot.png?ts=1770065141000)
 

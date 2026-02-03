@@ -65,7 +65,7 @@
 - **Web UI**: Yew/WASM interface at http://localhost:9952
 - **Tutorial system**: Interactive tutorials with auto-run mode
 - **DSL Parser**: Text-based pipeline commands (FILTER, SELECT, TAKE, SKIP, LOCATE, NLOCATE, COUNT, CHANGE, LITERAL, UPPER, LOWER, REVERSE, DUPLICATE)
-- **Live demo**: https://softwarewrighter.github.io/pipelines-rs/
+- **Live demo**: https://sw-comp-history.github.io/pipelines-rs/
 
 ## What's Not Working
 
