@@ -6,6 +6,7 @@
 mod app;
 mod components;
 mod dsl;
+mod debugger;
 
 use wasm_bindgen::prelude::*;
 

@@ -1,3 +1,8 @@
+use pipelines_rs::{Pipeline, Record};
+use pipelines_rs::dsl::{DebugCallbacks, DebugInfo, execute_pipeline_debug};
+
+pub use pipelines_rs::dsl::{DebugCallbacks, DebugInfo, execute_pipeline_debug};
+
 //! DSL parser and executor for pipeline commands.
 //!
 //! Pipeline format (CMS Pipelines style):
@@ -33,6 +38,7 @@
 //! - `DUPLICATE n` - Repeat each record n times
 //! - Lines starting with `#` are comments
 
+use pipelines_rs::dsl::{execute_pipeline_debug, DebugCallbacks, DebugInfo};
 use pipelines_rs::{Pipeline, Record};
 
 /// Execute a pipeline defined by DSL text on input records.
