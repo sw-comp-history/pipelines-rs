@@ -1,10 +1,5 @@
 #!/bin/bash
 set -euo pipefail
-
-# Demo: change-rename (record-at-a-time)
-cd "$(dirname "$0")/.."
-
-cargo run -p naive-pipe --bin pipe-run-rat --release -- \
-    ../specs/change-rename.pipe \
-    ../specs/input-fixed-80.data \
-    -o work/sample-pipe-outputs/change-rename.out 2>&1
+cd "$(dirname "$0")/../.."
+source scripts/demo-lib.sh
+run_demo "rat" "pipe-run-rat" "specs/change-rename.pipe" "specs/input-fixed-80.data" "naive-pipe/work/sample-pipe-outputs/change-rename.out"

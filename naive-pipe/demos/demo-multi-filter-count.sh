@@ -1,10 +1,5 @@
 #!/bin/bash
 set -euo pipefail
-
-# Demo: multi-filter-count (record-at-a-time)
-cd "$(dirname "$0")/.."
-
-cargo run -p naive-pipe --bin pipe-run-rat --release -- \
-    ../specs/multi-filter-count.pipe \
-    ../specs/input-fixed-80.data \
-    -o work/sample-pipe-outputs/multi-filter-count.out 2>&1
+cd "$(dirname "$0")/../.."
+source scripts/demo-lib.sh
+run_demo "rat" "pipe-run-rat" "specs/multi-filter-count.pipe" "specs/input-fixed-80.data" "naive-pipe/work/sample-pipe-outputs/multi-filter-count.out"

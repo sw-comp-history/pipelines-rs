@@ -36,27 +36,51 @@ cargo run -p naive-pipe --bin pipe-run-rat -- \
 ## Demo Scripts
 
 Each spec file has a corresponding demo script in `naive-pipe/demos/`.
+Demos are verbose: they print the input data, pipeline spec, execution
+command, and output so you can see exactly what each pipeline does.
 
 ### Run a Single Demo
 
 ```bash
 # From the repo root
 naive-pipe/demos/demo-filter-sales.sh
+```
 
-# Or from naive-pipe/
-cd naive-pipe
-./demos/demo-filter-sales.sh
+Example output:
+
+```
+================================================================
+  Demo: filter-sales (Record-at-a-Time)
+================================================================
+
+--- Input Data (specs/input-fixed-80.data) ---
+SMITH   JOHN      SALES     00050000
+JONES   MARY      ENGINEER  00075000
+...
+
+--- Pipeline (specs/filter-sales.pipe) ---
+PIPE CONSOLE
+| FILTER 18,10 = "SALES"
+| CONSOLE
+?
+
+--- Running: pipe-run-rat specs/filter-sales.pipe specs/input-fixed-80.data ---
+Processed 8 -> 3 records, output: naive-pipe/work/sample-pipe-outputs/filter-sales.out
+
+--- Output (naive-pipe/work/sample-pipe-outputs/filter-sales.out) ---
+SMITH   JOHN      SALES     00050000
+DOE     JANE      SALES     00060000
+GARCIA  CARLOS    SALES     00045000
 ```
 
 ### Run All Demos
 
 ```bash
-# From naive-pipe/
-cd naive-pipe
-./demos/demo-all.sh
+naive-pipe/demos/demo-all.sh
 ```
 
 Outputs are written to `naive-pipe/work/sample-pipe-outputs/`.
+Equivalent batched demos are in `demos/` at the repo root.
 
 ### Available Demos
 

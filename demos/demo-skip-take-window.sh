@@ -1,10 +1,5 @@
 #!/bin/bash
 set -euo pipefail
-
-# Demo: skip-take-window
 cd "$(dirname "$0")/.."
-
-cargo run --bin pipe-run --release -- \
-    specs/skip-take-window.pipe \
-    specs/input-fixed-80.data \
-    -o work/sample-pipe-outputs/skip-take-window.out 2>&1
+source scripts/demo-lib.sh
+run_demo "batched" "pipe-run" "specs/skip-take-window.pipe" "specs/input-fixed-80.data" "work/sample-pipe-outputs/skip-take-window.out"
