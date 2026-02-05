@@ -5,4 +5,5 @@ edition = "2024"
 description = "Record-at-a-time pipeline executor for pipelines-rs"
 
 [dependencies]
+clap = { version = "4", features = ["derive"] }
 pipelines-rs = { path = ".." }

@@ -1,65 +1,63 @@
 //! CLI tool to run pipeline (.pipe) files using the record-at-a-time executor.
-//!
-//! Usage:
-//!   pipe-run-rat <pipeline.pipe> <input.data>
-//!   pipe-run-rat <pipeline.pipe> <input.data> -o <output.data>
-//!
-//! If no output file is specified, writes to stdout.
-//! Produces identical output to `pipe-run` (batch executor) for all pipelines.
 
+use clap::Parser;
 use naive_pipe::execute_pipeline_rat;
-use std::env;
 use std::fs;
 use std::io::{self, Write};
 use std::path::Path;
 use std::process;
 
+/// Run a pipeline file against input data (record-at-a-time executor).
+///
+/// Produces identical output to pipe-run (batched) for all pipelines.
+#[derive(Parser)]
+#[command(name = "pipe-run-rat")]
+struct Cli {
+    /// Pipeline definition file (.pipe)
+    pipeline: String,
+
+    /// Input data file (80-byte fixed-width records, or /dev/stdin)
+    input: String,
+
+    /// Write output to file instead of stdout
+    #[arg(short, long)]
+    output: Option<String>,
+
+    /// Show paths, executor, and record counts on stderr
+    #[arg(short, long)]
+    verbose: bool,
+}
+
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let cli = Cli::parse();
 
-    if args.len() < 3 {
-        eprintln!(
-            "Usage: {} <pipeline.pipe> <input.data> [-o output.data]",
-            args[0]
-        );
-        eprintln!();
-        eprintln!("Run a pipeline file against input data (record-at-a-time).");
-        eprintln!();
-        eprintln!("Arguments:");
-        eprintln!("  <pipeline.pipe>  Pipeline definition file (.pipe)");
-        eprintln!("  <input.data>     Input data file (80-byte records)");
-        eprintln!("  -o <output>      Optional output file (default: stdout)");
-        process::exit(1);
+    let pipeline_text = match fs::read_to_string(&cli.pipeline) {
+        Ok(content) => content,
+        Err(e) => {
+            eprintln!("Error reading pipeline file '{}': {e}", cli.pipeline);
+            process::exit(1);
+        }
+    };
+
+    let input_text = match fs::read_to_string(&cli.input) {
+        Ok(content) => content,
+        Err(e) => {
+            eprintln!("Error reading input file '{}': {e}", cli.input);
+            process::exit(1);
+        }
+    };
+
+    if cli.verbose {
+        eprintln!("Pipeline: {}", cli.pipeline);
+        eprintln!("Input:    {}", cli.input);
+        eprintln!("Output:   {}", cli.output.as_deref().unwrap_or("(stdout)"));
+        eprintln!("Executor: record-at-a-time");
     }
-
-    let pipe_file = &args[1];
-    let input_file = &args[2];
-    let output_file = if args.len() > 4 && args[3] == "-o" {
-        Some(&args[4])
-    } else {
-        None
-    };
-
-    let pipeline_text = match fs::read_to_string(pipe_file) {
-        Ok(content) => content,
-        Err(e) => {
-            eprintln!("Error reading pipeline file '{pipe_file}': {e}");
-            process::exit(1);
-        }
-    };
-
-    let input_text = match fs::read_to_string(input_file) {
-        Ok(content) => content,
-        Err(e) => {
-            eprintln!("Error reading input file '{input_file}': {e}");
-            process::exit(1);
-        }
-    };
 
     match execute_pipeline_rat(&input_text, &pipeline_text) {
         Ok((output, input_count, output_count)) => {
-            if let Some(out_path) = output_file {
-                if let Some(parent) = Path::new(out_path).parent()
+            if let Some(out_path) = &cli.output {
+                if let Some(parent) = Path::new(out_path.as_str()).parent()
                     && !parent.as_os_str().is_empty()
                     && fs::create_dir_all(parent).is_err()
                 {
@@ -70,7 +68,6 @@ fn main() {
                     eprintln!("Error writing output file '{out_path}': {e}");
                     process::exit(1);
                 }
-                eprintln!("Processed {input_count} -> {output_count} records, output: {out_path}");
             } else {
                 if let Err(e) = io::stdout().write_all(output.as_bytes()) {
                     eprintln!("Error writing output: {e}");
@@ -79,7 +76,9 @@ fn main() {
                 if !output.is_empty() && !output.ends_with('\n') {
                     println!();
                 }
-                eprintln!("Processed {input_count} -> {output_count} records");
+            }
+            if cli.verbose {
+                eprintln!("Records:  {input_count} in -> {output_count} out");
             }
         }
         Err(e) => {

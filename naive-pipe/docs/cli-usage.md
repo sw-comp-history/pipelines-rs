@@ -22,16 +22,63 @@ cargo run -p naive-pipe --bin pipe-run-rat -- \
     specs/input-fixed-80.data
 ```
 
-Output goes to stdout; record counts go to stderr.
+Output goes to stdout. By default the command is quiet -- no extra
+output is printed to stderr.
 
 ### Writing Output to a File
 
 ```bash
 cargo run -p naive-pipe --bin pipe-run-rat -- \
+    -o work/filter-sales.out \
     specs/filter-sales.pipe \
-    specs/input-fixed-80.data \
-    -o work/filter-sales.out
+    specs/input-fixed-80.data
 ```
+
+### Verbose Mode
+
+Use `-v` / `--verbose` to print diagnostic info to stderr:
+
+```bash
+cargo run -p naive-pipe --bin pipe-run-rat -- \
+    -v specs/filter-sales.pipe specs/input-fixed-80.data
+```
+
+Output:
+
+```
+Pipeline: specs/filter-sales.pipe
+Input:    specs/input-fixed-80.data
+Output:   (stdout)
+Executor: record-at-a-time
+SMITH   JOHN      SALES     00050000
+DOE     JANE      SALES     00060000
+GARCIA  CARLOS    SALES     00045000
+Records:  8 in -> 3 out
+```
+
+### Reading from stdin
+
+```bash
+printf "HELLO\nWORLD\n" | cargo run -p naive-pipe --bin pipe-run-rat -- \
+    specs/upper-case.pipe /dev/stdin
+```
+
+### Command-Line Reference
+
+```
+pipe-run-rat [OPTIONS] <PIPELINE> <INPUT>
+
+Arguments:
+  <PIPELINE>  Pipeline definition file (.pipe)
+  <INPUT>     Input data file (80-byte fixed-width records, or /dev/stdin)
+
+Options:
+  -o, --output <OUTPUT>  Write output to file instead of stdout
+  -v, --verbose          Show paths, executor, and record counts on stderr
+  -h, --help             Print help
+```
+
+The batched equivalent `pipe-run` accepts the same arguments.
 
 ## Demo Scripts
 
@@ -65,7 +112,11 @@ PIPE CONSOLE
 ?
 
 --- Running: pipe-run-rat specs/filter-sales.pipe specs/input-fixed-80.data ---
-Processed 8 -> 3 records, output: naive-pipe/work/sample-pipe-outputs/filter-sales.out
+Pipeline: specs/filter-sales.pipe
+Input:    specs/input-fixed-80.data
+Output:   naive-pipe/work/sample-pipe-outputs/filter-sales.out
+Executor: record-at-a-time
+Records:  8 in -> 3 out
 
 --- Output (naive-pipe/work/sample-pipe-outputs/filter-sales.out) ---
 SMITH   JOHN      SALES     00050000

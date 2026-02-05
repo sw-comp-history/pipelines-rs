@@ -41,10 +41,10 @@ run_demo() {
 
     if [ "$mode" = "rat" ]; then
         cargo run -p naive-pipe --bin "$bin" --release -- \
-            "$pipe_file" "$input_file" -o "$output_file" 2>&1
+            -v -o "$output_file" "$pipe_file" "$input_file" 2>&1
     else
         cargo run --bin "$bin" --release -- \
-            "$pipe_file" "$input_file" -o "$output_file" 2>&1
+            -v -o "$output_file" "$pipe_file" "$input_file" 2>&1
     fi
 
     echo
