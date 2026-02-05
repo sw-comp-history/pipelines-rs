@@ -302,7 +302,7 @@ pub fn execute_pipeline_debug(
 
 /// Parsed pipeline command.
 #[derive(Debug, Clone)]
-enum Command {
+pub enum Command {
     /// CONSOLE - Read from input or write to output
     Console,
     /// FILTER pos,len = "value"
@@ -356,7 +356,7 @@ enum Command {
 impl Command {
     /// Can this stage be the first stage in a pipeline (source)?
     /// Sources generate or read records without needing upstream input.
-    fn can_be_first(&self) -> bool {
+    pub fn can_be_first(&self) -> bool {
         // CONSOLE reads from input, LITERAL generates a record, HOLE generates empty stream
         matches!(
             self,
@@ -365,7 +365,7 @@ impl Command {
     }
 
     /// Get the stage name for error messages.
-    fn name(&self) -> &'static str {
+    pub fn name(&self) -> &'static str {
         match self {
             Command::Console => "CONSOLE",
             Command::FilterEq { .. } | Command::FilterNe { .. } => "FILTER",
@@ -387,7 +387,7 @@ impl Command {
 }
 
 /// Parse DSL text into commands.
-fn parse_commands(text: &str) -> Result<Vec<Command>, String> {
+pub fn parse_commands(text: &str) -> Result<Vec<Command>, String> {
     let mut commands = Vec::new();
 
     for (line_num, line) in text.lines().enumerate() {
@@ -882,6 +882,115 @@ fn apply_command(records: Vec<Record>, cmd: &Command) -> Result<Vec<Record>, Str
             Ok(vec![])
         }
     }
+}
+
+/// Execute a pipeline in record-at-a-time mode.
+///
+/// Returns (output_text, input_count, output_count) on success.
+/// Produces identical output to `execute_pipeline` for all pipelines.
+pub fn execute_pipeline_rat(
+    input_text: &str,
+    pipeline_text: &str,
+) -> Result<(String, usize, usize), String> {
+    let commands = parse_commands(pipeline_text)?;
+
+    if commands.is_empty() {
+        return Err("Pipeline is empty".to_string());
+    }
+    if commands.len() < 2 {
+        return Err("Pipeline must have at least 2 stages".to_string());
+    }
+
+    let first = commands.first().unwrap();
+    if !first.can_be_first() {
+        return Err(format!(
+            "{} cannot be the first stage (try CONSOLE, LITERAL, or HOLE)",
+            first.name()
+        ));
+    }
+
+    let input_records: Vec<Record> = match first {
+        Command::Console => input_text
+            .lines()
+            .filter(|line| !line.is_empty())
+            .map(Record::from_str)
+            .collect(),
+        Command::Literal { text } => vec![Record::from_str(text)],
+        Command::Hole => vec![],
+        _ => return Err(format!("Unhandled source stage: {}", first.name())),
+    };
+
+    let input_count = input_records.len();
+
+    let mut stages: Vec<Box<dyn crate::record_stage::RecordStage>> = commands[1..]
+        .iter()
+        .map(crate::record_stage::command_to_record_stage)
+        .collect();
+
+    let output_records = crate::executor::execute_rat(input_records, &mut stages);
+    let output_count = output_records.len();
+
+    let output_text = output_records
+        .iter()
+        .map(|r| r.as_str().trim_end())
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    Ok((output_text, input_count, output_count))
+}
+
+/// Execute a pipeline in record-at-a-time mode with debug tracing.
+///
+/// Returns (output_text, input_count, output_count, trace) on success.
+pub fn execute_pipeline_rat_debug(
+    input_text: &str,
+    pipeline_text: &str,
+) -> Result<(String, usize, usize, crate::debug_trace::RatDebugTrace), String> {
+    let commands = parse_commands(pipeline_text)?;
+
+    if commands.is_empty() {
+        return Err("Pipeline is empty".to_string());
+    }
+    if commands.len() < 2 {
+        return Err("Pipeline must have at least 2 stages".to_string());
+    }
+
+    let first = commands.first().unwrap();
+    if !first.can_be_first() {
+        return Err(format!(
+            "{} cannot be the first stage (try CONSOLE, LITERAL, or HOLE)",
+            first.name()
+        ));
+    }
+
+    let input_records: Vec<Record> = match first {
+        Command::Console => input_text
+            .lines()
+            .filter(|line| !line.is_empty())
+            .map(Record::from_str)
+            .collect(),
+        Command::Literal { text } => vec![Record::from_str(text)],
+        Command::Hole => vec![],
+        _ => return Err(format!("Unhandled source stage: {}", first.name())),
+    };
+
+    let input_count = input_records.len();
+
+    let mut stages: Vec<Box<dyn crate::record_stage::RecordStage>> = commands[1..]
+        .iter()
+        .map(crate::record_stage::command_to_record_stage)
+        .collect();
+
+    let (output_records, trace) = crate::executor::execute_rat_traced(input_records, &mut stages);
+    let output_count = output_records.len();
+
+    let output_text = output_records
+        .iter()
+        .map(|r| r.as_str().trim_end())
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    Ok((output_text, input_count, output_count, trace))
 }
 
 #[cfg(test)]
