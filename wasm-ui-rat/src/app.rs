@@ -488,15 +488,18 @@ pub fn app() -> Html {
         Callback::from(move |_: ()| {
             let mut new_state = (*state).clone();
 
-            // If active and not finished, run to end
+            // If active and not finished, step to end (same as clicking Step repeatedly)
             if new_state.debugger_state.active
                 && new_state.debugger_state.current_step < new_state.debugger_state.total_steps
             {
-                new_state.debugger_state.set_to_end();
-                new_state.output_text = new_state.debugger_state.output_text.clone();
+                while new_state.debugger_state.current_step < new_state.debugger_state.total_steps {
+                    new_state.debugger_state.advance();
+                }
+                new_state.output_text = new_state.debugger_state.accumulated_output.clone();
+                let out_lines = new_state.output_text.lines().count();
                 new_state.stats = format!(
                     "Input: {} records | Output: {} records",
-                    new_state.debugger_state.input_count, new_state.debugger_state.output_count,
+                    new_state.debugger_state.input_count, out_lines,
                 );
                 new_state.error = None;
                 state.set(new_state);

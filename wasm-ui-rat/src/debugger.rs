@@ -244,37 +244,6 @@ impl DebuggerState {
         }
     }
 
-    /// Jump to the final state (all steps complete).
-    pub fn set_to_end(&mut self) {
-        let num_ui = self.num_ui_pipe_points();
-        let fc = self.flush_count();
-        let rc = self.record_count();
-
-        let final_vpp = if fc > 0 {
-            self.trace
-                .as_ref()
-                .map(|t| max_pp_for_flush(&t.flush_traces[fc - 1], num_ui))
-                .unwrap_or(0)
-        } else if rc > 0 {
-            self.trace
-                .as_ref()
-                .map(|t| max_pp_for_record(&t.record_traces[rc - 1]))
-                .unwrap_or(0)
-        } else {
-            0
-        };
-
-        self.current_step = self.total_steps;
-        if fc > 0 {
-            self.in_flush_phase = true;
-            self.trace_idx = fc - 1;
-        } else if rc > 0 {
-            self.in_flush_phase = false;
-            self.trace_idx = rc - 1;
-        }
-        self.visible_pp = final_vpp;
-    }
-
     /// Step counter label: "Record 2 of 8 (1/3)" or "Flush 1 of 2 (1/1)".
     fn step_label(&self) -> String {
         if !self.active || self.total_steps == 0 || self.current_step == 0 {
@@ -596,30 +565,6 @@ fn render_watch_item(
     }
 }
 
-/// Collect all records that passed through a pipe point across all traces.
-fn all_records_at(trace: &RatDebugTrace, stage_index: usize) -> Vec<String> {
-    let mut out = Vec::new();
-    for rt in &trace.record_traces {
-        if let Some(pp) = rt.pipe_points.get(stage_index) {
-            for r in pp {
-                out.push(r.as_str().trim_end().to_string());
-            }
-        }
-    }
-    for ft in &trace.flush_traces {
-        let flush_start = ft.stage_index + 1;
-        if stage_index >= flush_start {
-            let offset = stage_index - flush_start;
-            if let Some(pp) = ft.pipe_points.get(offset) {
-                for r in pp {
-                    out.push(r.as_str().trim_end().to_string());
-                }
-            }
-        }
-    }
-    out
-}
-
 fn render_watch_records(state: &DebuggerState, stage_index: usize) -> Html {
     if state.current_step == 0 {
         return html! {
@@ -634,29 +579,6 @@ fn render_watch_records(state: &DebuggerState, stage_index: usize) -> Html {
             };
         }
     };
-
-    // When execution is complete, show all records that ever passed this point.
-    if state.current_step >= state.total_steps {
-        let all = all_records_at(trace, stage_index);
-        if all.is_empty() {
-            return html! {};
-        }
-        let count = all.len();
-        return html! {
-            <>
-                { for all.iter().take(20).map(|text| {
-                    html! {
-                        <div class="watch-record">{text}</div>
-                    }
-                })}
-                if count > 20 {
-                    <div class="watch-record-more">
-                        {format!("... ({count} total)")}
-                    </div>
-                }
-            </>
-        };
-    }
 
     let records = if !state.in_flush_phase {
         trace.record_traces.get(state.trace_idx).and_then(|rt| {
