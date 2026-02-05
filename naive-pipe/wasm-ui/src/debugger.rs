@@ -391,6 +391,7 @@ pub fn debugger_panel(props: &DebuggerProps) -> Html {
     };
 
     let step_label = state.step_label();
+    let run_disabled = state.active && state.current_step >= state.total_steps;
     let step_disabled = !state.active || state.current_step >= state.total_steps;
     let reset_disabled = !state.active || state.current_step == 0;
 
@@ -414,6 +415,7 @@ pub fn debugger_panel(props: &DebuggerProps) -> Html {
                     <input type="file" accept=".pipe" ref={file_input_ref}
                         style="display:none" onchange={on_file_change} />
                     <button class="debug-btn debug-btn-run" onclick={on_run}
+                        disabled={run_disabled}
                         title="Run pipeline">
                         {"Run"}
                     </button>

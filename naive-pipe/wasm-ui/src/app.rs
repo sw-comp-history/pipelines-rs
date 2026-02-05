@@ -587,10 +587,15 @@ pub fn app() -> Html {
         Callback::from(move |_: ()| {
             let mut new_state = (*state).clone();
 
-            // If active and not finished, continue until breakpoint or end
+            // Already finished — do nothing (user must Reset or Load)
             if new_state.debugger_state.active
-                && new_state.debugger_state.current_step < new_state.debugger_state.total_steps
+                && new_state.debugger_state.current_step >= new_state.debugger_state.total_steps
             {
+                return;
+            }
+
+            // If active and not finished, continue until breakpoint or end
+            if new_state.debugger_state.active {
                 new_state.debugger_state.hit_breakpoint = None;
                 while new_state.debugger_state.current_step < new_state.debugger_state.total_steps {
                     let hit = new_state.debugger_state.advance();
