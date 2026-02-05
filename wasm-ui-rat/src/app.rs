@@ -488,17 +488,15 @@ pub fn app() -> Html {
         Callback::from(move |_: ()| {
             let mut new_state = (*state).clone();
 
-            // If already stepping, run to end instead of reloading
+            // If active and not finished, run to end
             if new_state.debugger_state.active
-                && new_state.debugger_state.current_step > 0
                 && new_state.debugger_state.current_step < new_state.debugger_state.total_steps
             {
                 new_state.debugger_state.set_to_end();
                 new_state.output_text = new_state.debugger_state.output_text.clone();
                 new_state.stats = format!(
                     "Input: {} records | Output: {} records",
-                    new_state.debugger_state.input_count,
-                    new_state.debugger_state.output_count,
+                    new_state.debugger_state.input_count, new_state.debugger_state.output_count,
                 );
                 new_state.error = None;
                 state.set(new_state);
@@ -572,22 +570,6 @@ pub fn app() -> Html {
             );
             new_state.error = None;
 
-            state.set(new_state);
-        })
-    };
-
-    // Debugger: run all remaining steps
-    let on_debug_run_all = {
-        let state = state.clone();
-        Callback::from(move |_: ()| {
-            let mut new_state = (*state).clone();
-            new_state.debugger_state.set_to_end();
-            new_state.output_text = new_state.debugger_state.output_text.clone();
-            new_state.stats = format!(
-                "Input: {} records | Output: {} records",
-                new_state.debugger_state.input_count, new_state.debugger_state.output_count,
-            );
-            new_state.error = None;
             state.set(new_state);
         })
     };
@@ -826,7 +808,6 @@ pub fn app() -> Html {
                                 state={state.debugger_state.clone()}
                                 on_run={on_debug_run}
                                 on_step={on_debug_step}
-                                on_run_all={on_debug_run_all}
                                 on_reset={on_debug_reset}
                                 on_add_watch={on_add_watch}
                                 on_remove_watch={on_remove_watch}

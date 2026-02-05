@@ -308,10 +308,20 @@ pub struct DebuggerProps {
     pub state: DebuggerState,
     pub on_run: Callback<()>,
     pub on_step: Callback<()>,
-    pub on_run_all: Callback<()>,
     pub on_reset: Callback<()>,
     pub on_add_watch: Callback<usize>,
     pub on_remove_watch: Callback<String>,
+}
+
+/// Run button label depends on state.
+fn run_button_label(state: &DebuggerState) -> &'static str {
+    if !state.active {
+        "Run"
+    } else if state.current_step >= state.total_steps {
+        "Reload"
+    } else {
+        "Run \u{25B6}\u{25B6}"
+    }
 }
 
 #[function_component(DebuggerPanel)]
@@ -326,49 +336,40 @@ pub fn debugger_panel(props: &DebuggerProps) -> Html {
         let cb = props.on_step.clone();
         Callback::from(move |_: MouseEvent| cb.emit(()))
     };
-    let on_run_all = {
-        let cb = props.on_run_all.clone();
-        Callback::from(move |_: MouseEvent| cb.emit(()))
-    };
     let on_reset = {
         let cb = props.on_reset.clone();
         Callback::from(move |_: MouseEvent| cb.emit(()))
     };
 
     let step_label = state.step_label();
+    let run_label = run_button_label(state);
+    let step_disabled = !state.active || state.current_step >= state.total_steps;
+    let reset_disabled = !state.active || state.current_step == 0;
 
     html! {
         <div class="panel debugger-panel">
             <div class="panel-header">
                 <h2>{"Visual Debugger"}</h2>
                 <div class="debug-controls">
-                    <button class="debug-btn" onclick={on_run} title="Run pipeline">
-                        {"Run"}
+                    <button class="debug-btn debug-btn-run" onclick={on_run}
+                        title="Run pipeline">
+                        {run_label}
                     </button>
-                    <button class="debug-btn"
+                    <button class="debug-btn debug-btn-step"
                         onclick={on_step}
-                        disabled={!state.active || state.current_step >= state.total_steps}
+                        disabled={step_disabled}
                         title="Step to next pipe point"
                     >
                         {"Step \u{25B6}"}
                     </button>
-                    <button class="debug-btn"
-                        onclick={on_run_all}
-                        disabled={!state.active || state.current_step >= state.total_steps}
-                        title="Run all remaining steps"
-                    >
-                        {"Run All"}
-                    </button>
-                    <button class="debug-btn"
+                    <button class="debug-btn debug-btn-reset"
                         onclick={on_reset}
-                        disabled={!state.active}
+                        disabled={reset_disabled}
                         title="Reset to step 0"
                     >
                         {"Reset"}
                     </button>
-                    if !step_label.is_empty() {
-                        <span class="step-counter">{step_label}</span>
-                    }
+                    <span class="step-counter">{step_label}</span>
                 </div>
             </div>
             <div class="panel-content debugger-content">
