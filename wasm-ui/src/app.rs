@@ -3,14 +3,14 @@
 use gloo::timers::callback::Timeout;
 use std::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::prelude::*;
 use web_sys::{Blob, HtmlAnchorElement, HtmlInputElement, HtmlSelectElement, Url};
 use yew::prelude::*;
 
 use crate::components::{InputPanel, OutputPanel, PipelinePanel};
 use crate::debugger::{DebuggerPanel, DebuggerState};
-use crate::dsl::execute_pipeline;
+use crate::dsl::{execute_pipeline, execute_pipeline_debug, parse_pipeline_lines};
 
 /// Render CSS-animated countdown with cycling dots.
 fn countdown_html(countdown: u32, prefix: &str, suffix: &str) -> Html {
@@ -242,7 +242,9 @@ GARCIA  CARLOS    SALES     00045000
 TAYLOR  SUSAN     MARKETING 00065000
 BROWN   MICHAEL   ENGINEER  00090000"#;
 
-const DEFAULT_PIPELINE: &str = r#"PIPE LITERAL HELLO, WORLD
+const DEFAULT_PIPELINE: &str = r#"PIPE CONSOLE
+| LOCATE /SALES/
+| CHANGE /SALES/ /REVENUE/
 | CONSOLE
 ?"#;
 
@@ -480,6 +482,115 @@ pub fn app() -> Html {
         })
     };
 
+    // Debugger: run pipeline with debug info
+    let on_debug_run = {
+        let state = state.clone();
+        Callback::from(move |_: ()| {
+            let mut new_state = (*state).clone();
+            let lines = parse_pipeline_lines(&new_state.pipeline_text);
+
+            match execute_pipeline_debug(&new_state.input_text, &new_state.pipeline_text) {
+                Ok((output, input_count, output_count, debug_info)) => {
+                    let stage_count = debug_info.len();
+                    new_state.debugger_state.active = true;
+                    new_state.debugger_state.debug_info = debug_info;
+                    new_state.debugger_state.current_step = 0;
+                    new_state.debugger_state.stage_count = stage_count;
+                    new_state.debugger_state.output_text = output;
+                    new_state.debugger_state.input_count = input_count;
+                    new_state.debugger_state.output_count = output_count;
+                    new_state.debugger_state.pipeline_lines = lines;
+                    new_state.debugger_state.error = None;
+                    // Keep existing watches (they reference stage indices)
+                    // Remove watches that reference out-of-range stages
+                    new_state
+                        .debugger_state
+                        .watches
+                        .retain(|w| w.stage_index < stage_count);
+                }
+                Err(e) => {
+                    new_state.debugger_state.active = true;
+                    new_state.debugger_state.debug_info.clear();
+                    new_state.debugger_state.current_step = 0;
+                    new_state.debugger_state.stage_count = 0;
+                    new_state.debugger_state.output_text.clear();
+                    new_state.debugger_state.pipeline_lines = lines;
+                    new_state.debugger_state.error = Some(e);
+                }
+            }
+
+            state.set(new_state);
+        })
+    };
+
+    // Debugger: step forward one stage
+    let on_debug_step = {
+        let state = state.clone();
+        Callback::from(move |_: ()| {
+            let mut new_state = (*state).clone();
+            if new_state.debugger_state.current_step < new_state.debugger_state.stage_count {
+                new_state.debugger_state.current_step += 1;
+
+                // Update output panel when all stages complete
+                if new_state.debugger_state.current_step == new_state.debugger_state.stage_count {
+                    new_state.output_text = new_state.debugger_state.output_text.clone();
+                    new_state.stats = format!(
+                        "Input: {} records | Output: {} records",
+                        new_state.debugger_state.input_count, new_state.debugger_state.output_count,
+                    );
+                    new_state.error = None;
+                }
+            }
+            state.set(new_state);
+        })
+    };
+
+    // Debugger: run all remaining stages
+    let on_debug_run_all = {
+        let state = state.clone();
+        Callback::from(move |_: ()| {
+            let mut new_state = (*state).clone();
+            new_state.debugger_state.current_step = new_state.debugger_state.stage_count;
+            new_state.output_text = new_state.debugger_state.output_text.clone();
+            new_state.stats = format!(
+                "Input: {} records | Output: {} records",
+                new_state.debugger_state.input_count, new_state.debugger_state.output_count,
+            );
+            new_state.error = None;
+            state.set(new_state);
+        })
+    };
+
+    // Debugger: reset to step 0
+    let on_debug_reset = {
+        let state = state.clone();
+        Callback::from(move |_: ()| {
+            let mut new_state = (*state).clone();
+            new_state.debugger_state.current_step = 0;
+            state.set(new_state);
+        })
+    };
+
+    // Debugger: add watch at pipe point
+    let on_add_watch = {
+        let state = state.clone();
+        Callback::from(move |stage_index: usize| {
+            let mut new_state = (*state).clone();
+            new_state.debugger_state.add_watch(stage_index);
+            state.set(new_state);
+        })
+    };
+
+    // Debugger: remove watch by label
+    let on_remove_watch = {
+        let state = state.clone();
+        Callback::from(move |label: String| {
+            let mut new_state = (*state).clone();
+            new_state.debugger_state.remove_watch(&label);
+            state.set(new_state);
+        })
+    };
+
     // Handle clicking on overlay to dismiss dialog/tooltip
     let on_overlay_click = {
         let state = state.clone();
@@ -650,7 +761,7 @@ pub fn app() -> Html {
             </header>
 
             <main class="main">
-                <div class="panels">
+                <div class={if state.show_debugger_tab {"panels debugger-mode"} else {"panels"}}>
                     <InputPanel
                         value={state.input_text.clone()}
                         on_change={on_input_change}
@@ -669,25 +780,20 @@ pub fn app() -> Html {
                                 auto_mode={state.auto_mode}
                                 countdown={state.countdown}
                             />
-
-                            <OutputPanel
-                                value={state.output_text.clone()}
-                                error={state.error.clone()}
-                                stats={state.stats.clone()}
-                                show_tutorial_buttons={state.tutorial_phase == TutorialPhase::ShowingOutputButtons}
-                            />
                         }
                     } else {
                         html! {
                             <DebuggerPanel
-                                input_text={state.input_text.clone()}
-                                pipeline_text={state.pipeline_text.clone()}
-                                on_run={on_run.clone()}
+                                state={state.debugger_state.clone()}
+                                on_run={on_debug_run}
+                                on_step={on_debug_step}
+                                on_run_all={on_debug_run_all}
+                                on_reset={on_debug_reset}
+                                on_add_watch={on_add_watch}
+                                on_remove_watch={on_remove_watch}
                             />
                         }
-
-                        }
-                    }
+                    }}
 
                     <OutputPanel
                         value={state.output_text.clone()}

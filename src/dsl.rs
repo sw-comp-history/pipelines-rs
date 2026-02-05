@@ -41,23 +41,26 @@
 
 use crate::{Pipeline, Record};
 
+/// Callback type for stage start events: `(stage_index, stage_name)`.
+type StageStartCallback = Box<dyn Fn(usize, &str) + 'static>;
+/// Callback type for stage complete events: `(stage_index, output_count)`.
+type StageCompleteCallback = Box<dyn Fn(usize, usize) + 'static>;
+
 /// Debug callback information for stage-by-stage execution.
+#[derive(Default)]
 pub struct DebugCallbacks {
-    pub on_stage_start: Option<Box<dyn Fn(usize, &str) + 'static>>,
-    pub on_stage_complete: Option<Box<dyn Fn(usize, usize) + 'static>>,
+    pub on_stage_start: Option<StageStartCallback>,
+    pub on_stage_complete: Option<StageCompleteCallback>,
 }
 
 impl DebugCallbacks {
     pub fn new() -> Self {
-        Self {
-            on_stage_start: None,
-            on_stage_complete: None,
-        }
+        Self::default()
     }
 }
 
 /// Debug information for a single pipeline stage execution.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DebugInfo {
     pub stage_name: String,
     pub input_count: usize,
@@ -216,13 +219,46 @@ pub fn execute_pipeline_debug(
     let mut debug_info: Vec<DebugInfo> = Vec::new();
     let mut current_records = input_records;
 
-    for (idx, cmd) in commands.iter().enumerate() {
-        let stage_name = format!("{:?}", cmd);
+    // Record debug info for the source stage (stage 0).
+    // The source was already evaluated above; don't re-apply it.
+    {
+        let source_name = first.name().to_string();
+        let source_output_count = current_records.len();
 
-        if let Some(debug) = debug {
-            if let Some(on_start) = &debug.on_stage_start {
-                on_start(idx, &stage_name);
-            }
+        if let Some(debug) = debug
+            && let Some(on_start) = &debug.on_stage_start
+        {
+            on_start(0, &source_name);
+        }
+
+        if let Some(debug) = debug
+            && let Some(on_complete) = &debug.on_stage_complete
+        {
+            on_complete(0, source_output_count);
+        }
+
+        let info = if debug.is_some() {
+            DebugInfo::with_records(
+                source_name,
+                0,
+                source_output_count,
+                vec![],
+                current_records.clone(),
+            )
+        } else {
+            DebugInfo::new(source_name, 0, source_output_count)
+        };
+        debug_info.push(info);
+    }
+
+    // Apply remaining commands (after source stage)
+    for (idx, cmd) in commands.iter().enumerate().skip(1) {
+        let stage_name = cmd.name().to_string();
+
+        if let Some(debug) = debug
+            && let Some(on_start) = &debug.on_stage_start
+        {
+            on_start(idx, &stage_name);
         }
 
         let input_count_stage = current_records.len();
@@ -233,19 +269,19 @@ pub fn execute_pipeline_debug(
         let output_count_stage = current_records.len();
         let output_records_clone = debug.as_ref().map(|_| current_records.clone());
 
-        if let Some(debug) = debug {
-            if let Some(on_complete) = &debug.on_stage_complete {
-                on_complete(idx, output_count_stage);
-            }
+        if let Some(debug) = debug
+            && let Some(on_complete) = &debug.on_stage_complete
+        {
+            on_complete(idx, output_count_stage);
         }
 
-        let info = if input_records_clone.is_some() {
+        let info = if let Some(input_recs) = input_records_clone {
             DebugInfo::with_records(
                 stage_name,
                 input_count_stage,
                 output_count_stage,
-                input_records_clone.unwrap(),
-                output_records_clone.unwrap(),
+                input_recs,
+                output_records_clone.unwrap_or_default(),
             )
         } else {
             DebugInfo::new(stage_name, input_count_stage, output_count_stage)
@@ -931,9 +967,11 @@ mod tests {
 | CONSOLE"#;
         let result = execute_pipeline(input, pipeline);
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .contains("FILTER cannot be the first stage"));
+        assert!(
+            result
+                .unwrap_err()
+                .contains("FILTER cannot be the first stage")
+        );
     }
 
     #[test]
@@ -1132,8 +1170,8 @@ DOE     JANE      SALES     00060000";
         assert_eq!(output_count, 3);
         assert_eq!(output, "A\nB\nC");
         assert_eq!(debug_info.len(), 2);
-        assert_eq!(debug_info[0].stage_name, "Console");
-        assert_eq!(debug_info[1].stage_name, "Console");
+        assert_eq!(debug_info[0].stage_name, "CONSOLE");
+        assert_eq!(debug_info[1].stage_name, "CONSOLE");
         assert!(debug_info[0].input_records.is_none());
         assert!(debug_info[0].output_records.is_none());
     }

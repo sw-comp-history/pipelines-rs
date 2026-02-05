@@ -17,7 +17,10 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 3 {
-        eprintln!("Usage: {} <pipeline.pipe> <input.data> [-o output.data]", args[0]);
+        eprintln!(
+            "Usage: {} <pipeline.pipe> <input.data> [-o output.data]",
+            args[0]
+        );
         eprintln!();
         eprintln!("Run a pipeline file against input data.");
         eprintln!();
@@ -70,7 +73,10 @@ fn main() {
                     eprintln!("Error writing output file '{}': {}", out_path, e);
                     process::exit(1);
                 }
-                eprintln!("Processed {} -> {} records, output: {}", input_count, output_count, out_path);
+                eprintln!(
+                    "Processed {} -> {} records, output: {}",
+                    input_count, output_count, out_path
+                );
             } else {
                 // Write to stdout
                 if let Err(e) = io::stdout().write_all(output.as_bytes()) {

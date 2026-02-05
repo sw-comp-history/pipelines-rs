@@ -1,4 +1,4 @@
-use pipelines_rs::{Pipeline, Record};
+use pipelines_rs::{DebugCallbacks, DebugInfo, Pipeline, Record};
 
 // DSL parser and executor for pipeline commands.
 //
@@ -26,8 +26,6 @@ use pipelines_rs::{Pipeline, Record};
 // - `DUPLICATE n` - Repeat each record n times
 // - Lines starting with `#` are comments
 //
-use pipelines_rs::dsl::{execute_pipeline_debug, DebugCallbacks, DebugInfo};
-
 /// Execute a pipeline defined by DSL text on input records.
 ///
 /// Returns (output_text, input_count, output_count) on success.
@@ -687,7 +685,70 @@ fn apply_command(records: Vec<Record>, cmd: &Command) -> Result<Vec<Record>, Str
     }
 }
 
-pub use pipelines_rs::dsl::{execute_pipeline_debug, DebugCallbacks, DebugInfo};
+/// Execute a pipeline with debug info, using the core library's debug executor.
+///
+/// Returns (output_text, input_count, output_count, debug_info) on success.
+pub fn execute_pipeline_debug(
+    input_text: &str,
+    pipeline_text: &str,
+) -> Result<(String, usize, usize, Vec<DebugInfo>), String> {
+    let callbacks = Some(DebugCallbacks::new());
+    pipelines_rs::execute_pipeline_debug(input_text, pipeline_text, &callbacks)
+}
+
+/// A parsed pipeline line for debugger display.
+#[derive(Clone, PartialEq)]
+pub struct PipelineLine {
+    /// The display text for this command (cleaned up).
+    pub text: String,
+    /// The stage index in the debug_info vector.
+    pub stage_index: usize,
+}
+
+/// Parse pipeline text into display lines, each tagged with its stage index.
+pub fn parse_pipeline_lines(pipeline_text: &str) -> Vec<PipelineLine> {
+    let mut lines = Vec::new();
+    let mut stage_index: usize = 0;
+
+    for line in pipeline_text.lines() {
+        let trimmed = line.trim();
+
+        // Skip empty lines and comments
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+
+        // Extract command text (same logic as parse_commands)
+        let cmd_text = if trimmed.to_uppercase().starts_with("PIPE ") {
+            trimmed[5..].trim()
+        } else if trimmed.eq_ignore_ascii_case("PIPE") {
+            continue;
+        } else {
+            trimmed
+        };
+
+        let cmd_text = if let Some(stripped) = cmd_text.strip_prefix('|') {
+            stripped.trim()
+        } else {
+            cmd_text
+        };
+
+        let cmd_text = cmd_text.trim_end_matches('|').trim();
+        let cmd_text = cmd_text.trim_end_matches('?').trim();
+
+        if cmd_text.is_empty() {
+            continue;
+        }
+
+        lines.push(PipelineLine {
+            text: cmd_text.to_string(),
+            stage_index,
+        });
+        stage_index += 1;
+    }
+
+    lines
+}
 
 #[cfg(test)]
 mod tests {

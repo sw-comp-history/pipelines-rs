@@ -39,7 +39,7 @@ pub mod pipeline;
 pub mod record;
 pub mod stage;
 
-pub use dsl::execute_pipeline;
+pub use dsl::{DebugCallbacks, DebugInfo, execute_pipeline, execute_pipeline_debug};
 pub use error::PipelineError;
 pub use pipeline::{Pipeline, from_lines, from_strings};
 pub use record::{RECORD_WIDTH, Record};
