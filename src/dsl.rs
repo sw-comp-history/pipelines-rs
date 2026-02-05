@@ -390,43 +390,43 @@ impl Command {
 pub fn parse_commands(text: &str) -> Result<Vec<Command>, String> {
     let mut commands = Vec::new();
 
+    // Normalize: split each source line on '|' so that both multi-line and
+    // single-line pipeline definitions work.  We keep track of the original
+    // line number for error messages.
+    let mut segments: Vec<(usize, &str)> = Vec::new();
     for (line_num, line) in text.lines().enumerate() {
-        let line = line.trim();
+        for part in line.split('|') {
+            segments.push((line_num, part));
+        }
+    }
 
-        // Skip empty lines and comments
-        if line.is_empty() || line.starts_with('#') {
+    for (line_num, segment) in segments {
+        let segment = segment.trim();
+
+        // Skip empty segments and comments
+        if segment.is_empty() || segment.starts_with('#') {
             continue;
         }
 
         // Handle "PIPE COMMAND" - extract command after PIPE
-        let line = if line.to_uppercase().starts_with("PIPE ") {
-            line[5..].trim()
-        } else if line.eq_ignore_ascii_case("PIPE") {
+        let segment = if segment.to_uppercase().starts_with("PIPE ") {
+            segment[5..].trim()
+        } else if segment.eq_ignore_ascii_case("PIPE") {
             // Skip standalone PIPE declaration
             continue;
         } else {
-            line
+            segment
         };
-
-        // Handle continuation lines: "| COMMAND ..."
-        let line = if let Some(stripped) = line.strip_prefix('|') {
-            stripped.trim()
-        } else {
-            line
-        };
-
-        // Remove trailing pipe delimiter (legacy format)
-        let line = line.trim_end_matches('|').trim();
 
         // Remove trailing ? (explicit end of pipeline)
-        let line = line.trim_end_matches('?').trim();
+        let segment = segment.trim_end_matches('?').trim();
 
-        // Skip if line is now empty
-        if line.is_empty() {
+        // Skip if segment is now empty
+        if segment.is_empty() {
             continue;
         }
 
-        let cmd = parse_command(line).map_err(|e| format!("Line {}: {}", line_num + 1, e))?;
+        let cmd = parse_command(segment).map_err(|e| format!("Line {}: {}", line_num + 1, e))?;
         commands.push(cmd);
     }
 
