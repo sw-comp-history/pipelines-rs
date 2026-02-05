@@ -745,6 +745,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "naive-pipe"
+version = "0.1.0"
+dependencies = [
+ "pipelines-rs",
+]
+
+[[package]]
 name = "nu-ansi-term"
 version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1328,6 +1335,7 @@ dependencies = [
  "console_error_panic_hook",
  "gloo 0.11.0",
  "js-sys",
+ "naive-pipe",
  "pipelines-rs",
  "wasm-bindgen",
  "wasm-bindgen-test",

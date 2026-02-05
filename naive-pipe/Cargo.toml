@@ -1,0 +1,8 @@
+[package]
+name = "naive-pipe"
+version = "0.1.0"
+edition = "2024"
+description = "Record-at-a-time pipeline executor for pipelines-rs"
+
+[dependencies]
+pipelines-rs = { path = ".." }

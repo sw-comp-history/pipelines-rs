@@ -4,8 +4,8 @@
 //! output records. This enables the record-at-a-time (RAT) executor to show
 //! individual record flow through the pipeline.
 
-use crate::Record;
-use crate::dsl::Command;
+use pipelines_rs::Command;
+use pipelines_rs::Record;
 
 /// A pipeline stage that processes records one at a time.
 ///

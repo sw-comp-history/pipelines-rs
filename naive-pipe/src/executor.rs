@@ -5,7 +5,8 @@
 //! the batch executor which processes all records through one stage before
 //! moving to the next.
 
-use crate::Record;
+use pipelines_rs::Record;
+
 use crate::debug_trace::{FlushTrace, RatDebugTrace, RecordTrace};
 use crate::record_stage::RecordStage;
 
@@ -117,8 +118,8 @@ pub fn execute_rat_traced(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::dsl::{Command, execute_pipeline, parse_commands};
     use crate::record_stage::command_to_record_stage;
+    use pipelines_rs::{Command, execute_pipeline, parse_commands};
     use std::fs;
     use std::path::Path;
 
@@ -158,7 +159,9 @@ mod tests {
 
     /// Assert RAT and batch executors produce identical output for a spec file.
     fn assert_equivalence(spec_name: &str) {
-        let spec_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("specs");
+        let spec_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("specs");
         let input = fs::read_to_string(spec_dir.join("input-fixed-80.data")).unwrap();
         let pipeline = fs::read_to_string(spec_dir.join(spec_name)).unwrap();
 

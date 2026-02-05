@@ -14,7 +14,7 @@
 //! `pipeline_lines` includes ALL stages (source at index 0). The pipe
 //! point between pipeline stage `i` and `i+1` maps to `pipe_points[i]`.
 
-use pipelines_rs::RatDebugTrace;
+use naive_pipe::RatDebugTrace;
 use web_sys::HtmlSelectElement;
 use yew::prelude::*;
 
@@ -95,7 +95,7 @@ impl Default for DebuggerState {
 
 /// Max UI pipe points to reveal for a record trace.
 /// Stops at the first empty pipe point (filter) + 1.
-fn max_pp_for_record(rt: &pipelines_rs::RecordTrace) -> usize {
+fn max_pp_for_record(rt: &naive_pipe::RecordTrace) -> usize {
     // Last pipe_point is final output (not a UI pipe point).
     let ui_count = rt.pipe_points.len().saturating_sub(1);
     for i in 0..ui_count {
@@ -107,7 +107,7 @@ fn max_pp_for_record(rt: &pipelines_rs::RecordTrace) -> usize {
 }
 
 /// Max UI pipe points to reveal for a flush trace.
-fn max_pp_for_flush(ft: &pipelines_rs::FlushTrace, num_ui_pp: usize) -> usize {
+fn max_pp_for_flush(ft: &naive_pipe::FlushTrace, num_ui_pp: usize) -> usize {
     let start = ft.stage_index + 1;
     let viewable = num_ui_pp.saturating_sub(start).min(ft.pipe_points.len());
     for i in 0..viewable {

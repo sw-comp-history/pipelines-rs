@@ -1,5 +1,5 @@
 [workspace]
-members = [".", "wasm-ui", "wasm-ui-rat"]
+members = [".", "wasm-ui", "naive-pipe", "naive-pipe/wasm-ui"]
 resolver = "2"
 
 [package]

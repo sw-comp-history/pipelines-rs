@@ -33,23 +33,16 @@
 //! assert_eq!(result.len(), 2);
 //! ```
 
-pub mod debug_trace;
 pub mod dsl;
 pub mod error;
-pub mod executor;
 pub mod pipeline;
 pub mod record;
-pub mod record_stage;
 pub mod stage;
 
-pub use debug_trace::{FlushTrace, RatDebugTrace, RecordTrace};
 pub use dsl::{
-    Command, DebugCallbacks, DebugInfo, execute_pipeline, execute_pipeline_debug,
-    execute_pipeline_rat, execute_pipeline_rat_debug, parse_commands,
+    Command, DebugCallbacks, DebugInfo, execute_pipeline, execute_pipeline_debug, parse_commands,
 };
 pub use error::PipelineError;
-pub use executor::{execute_rat, execute_rat_traced};
 pub use pipeline::{Pipeline, from_lines, from_strings};
 pub use record::{RECORD_WIDTH, Record};
-pub use record_stage::{RecordStage, command_to_record_stage};
 pub use stage::{Filter, Inspect, Map, Reformat, Select, Stage};

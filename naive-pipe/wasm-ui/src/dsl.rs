@@ -3,7 +3,7 @@
 //! Replaces the duplicated DSL parser with direct calls to the library's
 //! `execute_pipeline_rat` and `execute_pipeline_rat_debug` functions.
 
-use pipelines_rs::RatDebugTrace;
+use naive_pipe::RatDebugTrace;
 
 /// Execute a pipeline using the record-at-a-time executor.
 ///
@@ -12,7 +12,7 @@ pub fn execute_pipeline(
     input_text: &str,
     pipeline_text: &str,
 ) -> Result<(String, usize, usize), String> {
-    pipelines_rs::execute_pipeline_rat(input_text, pipeline_text)
+    naive_pipe::execute_pipeline_rat(input_text, pipeline_text)
 }
 
 /// Execute a pipeline with debug tracing using the record-at-a-time executor.
@@ -22,7 +22,7 @@ pub fn execute_pipeline_debug(
     input_text: &str,
     pipeline_text: &str,
 ) -> Result<(String, usize, usize, RatDebugTrace), String> {
-    pipelines_rs::execute_pipeline_rat_debug(input_text, pipeline_text)
+    naive_pipe::execute_pipeline_rat_debug(input_text, pipeline_text)
 }
 
 /// A parsed pipeline line for debugger display.

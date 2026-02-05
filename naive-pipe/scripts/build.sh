@@ -1,19 +1,19 @@
 #!/bin/bash
 set -euo pipefail
 
-# Build pipelines-rs library and RAT WASM UI
+# Build naive-pipe library and RAT WASM UI
 # Local-only build (no GitHub Pages deployment)
 
 cd "$(dirname "$0")/.."
 
-echo "Building Rust library..."
+echo "Building naive-pipe library..."
 cargo build
 
 echo ""
 echo "Building RAT WASM UI with trunk..."
-cd wasm-ui-rat
+cd wasm-ui
 trunk build
 
 echo ""
 echo "Build complete!"
-echo "Run ./scripts/serve-rat.sh to start the server on port 9953"
+echo "Run ./scripts/serve.sh to start the server on port 9953"

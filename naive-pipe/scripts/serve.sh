@@ -7,4 +7,4 @@ cd "$(dirname "$0")/.."
 
 echo "Serving RAT UI at http://localhost:9953/"
 echo "Press Ctrl+C to stop"
-basic-http-server -a 0.0.0.0:9953 wasm-ui-rat/dist
+basic-http-server -a 0.0.0.0:9953 wasm-ui/dist

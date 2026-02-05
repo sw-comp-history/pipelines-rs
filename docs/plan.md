@@ -423,6 +423,20 @@ Record-at-a-time visual debugger in `wasm-ui-rat/`:
 
 See [naive-pipe/docs/debugger-manual.md](../naive-pipe/docs/debugger-manual.md) for usage.
 
+### Future: Crate Workspace Restructure
+
+Planned structure for full separation of concerns:
+
+```
+crates/
+  shared/     - Common types (Record, Command, parse_commands, error types)
+  batched/    - Batch/iterator-based pipeline executor (current src/)
+  raat/       - Record-at-a-time executor (current naive-pipe/)
+  saat/       - Stage-at-a-time executor (future)
+```
+
+Each crate depends on shared/. Each has its own wasm-ui/ for web interface.
+
 ### Milestone 5: Advanced Multi-Stage Features (Future)
 - SPLIT stage with conditional routing (match-based subpipes)
 - Conditional pipelines (IF...THEN...ELSE)

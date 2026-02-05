@@ -3,7 +3,7 @@
 //! These types capture the journey of each record through the pipeline,
 //! enabling visualization of record-at-a-time execution flow.
 
-use crate::Record;
+use pipelines_rs::Record;
 
 /// Trace of one input record's journey through the pipeline.
 ///

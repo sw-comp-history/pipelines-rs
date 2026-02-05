@@ -36,6 +36,6 @@ fn main() {
     println!("cargo:rustc-env=BUILD_TIMESTAMP={}", timestamp);
 
     // Rerun if git HEAD changes
-    println!("cargo:rerun-if-changed=../.git/HEAD");
+    println!("cargo:rerun-if-changed=../../.git/HEAD");
     println!("cargo:rerun-if-changed=build.rs");
 }
