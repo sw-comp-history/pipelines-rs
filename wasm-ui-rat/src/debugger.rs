@@ -3,6 +3,14 @@
 //! Steps through input records (not stages). Each step shows one record's
 //! journey through all pipe points simultaneously. After all records,
 //! flush traces are shown.
+//!
+//! **Important indexing note:** The library's `execute_pipeline_rat_debug`
+//! handles the source stage (e.g. CONSOLE) separately and passes only
+//! the remaining stages to the traced executor. So `trace.stage_names`
+//! does NOT include the source, and `pipe_points[0]` is the input to
+//! the first processing stage. But `pipeline_lines` includes all stages
+//! (source at index 0). The pipe point between pipeline stage `i` and
+//! `i+1` maps to `trace.pipe_points[i]`.
 
 use pipelines_rs::RatDebugTrace;
 use yew::prelude::*;
@@ -14,7 +22,9 @@ use crate::dsl::PipelineLine;
 pub struct Watch {
     /// Display label: "w1", "w2", etc.
     pub label: String,
-    /// Which pipe point (output of this stage index).
+    /// Pipeline stage index of the stage above this pipe point.
+    /// The pipe point is between pipeline stage `stage_index` and
+    /// `stage_index + 1`.
     pub stage_index: usize,
 }
 
@@ -260,9 +270,10 @@ fn render_stage_list(state: &DebuggerState, on_add_watch: &Callback<usize>) -> H
 
 /// Determine the CSS class for a stage row based on current step.
 ///
-/// In RAT mode all stages are always "visible" since we show a record's
-/// full journey. We highlight based on whether the current step has data
-/// flowing through this stage.
+/// The source stage (pipeline index 0) is always active if there's data.
+/// Processing stages (pipeline index >= 1) map to trace stage index `i - 1`.
+/// A stage is "active" if it received input (the pipe point before it is
+/// non-empty).
 fn stage_class(state: &DebuggerState, stage_idx: usize) -> &'static str {
     if state.current_step == 0 || state.current_step > state.total_steps {
         return "stage-pending";
@@ -274,27 +285,28 @@ fn stage_class(state: &DebuggerState, stage_idx: usize) -> &'static str {
     };
 
     let rc = trace.record_traces.len();
-    let step = state.current_step - 1; // 0-based index into traces
+    let step = state.current_step - 1;
 
     if step < rc {
-        // Record trace step
         let rt = &trace.record_traces[step];
-        // pipe_points[stage_idx] is input to stage_idx (output of stage_idx-1)
-        // pipe_points[stage_idx+1] is output of stage_idx
-        // Stage is "active" if it received input
-        if stage_idx < rt.pipe_points.len() && !rt.pipe_points[stage_idx].is_empty() {
+        // Source (stage 0): active if pipe_points[0] is non-empty
+        // Stage i (i >= 1): active if pipe_points[i-1] is non-empty
+        //   (pipe_points[i-1] is the input to trace stage i-1)
+        let input_pp = if stage_idx == 0 { 0 } else { stage_idx - 1 };
+        if input_pp < rt.pipe_points.len() && !rt.pipe_points[input_pp].is_empty() {
             "stage-completed"
         } else {
             "stage-pending"
         }
     } else {
-        // Flush trace step
         let flush_idx = step - rc;
         if let Some(ft) = trace.flush_traces.get(flush_idx) {
-            // Flush originates at ft.stage_index, propagates downstream
-            // Stages at or after the originating stage are relevant
-            if stage_idx >= ft.stage_index {
-                let offset = stage_idx - ft.stage_index;
+            // Flush originates at trace stage ft.stage_index.
+            // In pipeline terms, that's pipeline stage ft.stage_index + 1
+            // (because pipeline index 0 is the source).
+            let flush_pipeline_idx = ft.stage_index + 1;
+            if stage_idx >= flush_pipeline_idx {
+                let offset = stage_idx - flush_pipeline_idx;
                 if offset < ft.pipe_points.len() && !ft.pipe_points[offset].is_empty() {
                     "stage-completed"
                 } else {
@@ -347,10 +359,9 @@ fn render_pipe_point(
 
 /// Get the pipe point info text for the current step.
 ///
-/// For a record step, shows what's at pipe_points[stage_index + 1]
-/// (the output of stage_index, input to stage_index + 1).
-/// For a flush step, shows what's at the appropriate offset from the
-/// originating stage.
+/// The pipe point between pipeline stage `i` and `i+1` maps to
+/// `trace.pipe_points[i]` (because the source stage is excluded
+/// from the trace, so pipeline index 0 maps to pipe_points[0]).
 fn pipe_point_info(state: &DebuggerState, stage_index: usize) -> String {
     if state.current_step == 0 {
         return "\u{00B7}\u{00B7}\u{00B7}".to_string();
@@ -363,10 +374,7 @@ fn pipe_point_info(state: &DebuggerState, stage_index: usize) -> String {
 
     let rc = trace.record_traces.len();
     let step = state.current_step - 1;
-
-    // Pipe point between stage_index and stage_index+1 corresponds
-    // to pipe_points[stage_index + 1] in a record trace
-    let pp_index = stage_index + 1;
+    let pp_index = stage_index;
 
     if step < rc {
         let rt = &trace.record_traces[step];
@@ -379,9 +387,12 @@ fn pipe_point_info(state: &DebuggerState, stage_index: usize) -> String {
     } else {
         let flush_idx = step - rc;
         if let Some(ft) = trace.flush_traces.get(flush_idx) {
-            // Flush pipe point: stage_index must be >= ft.stage_index
-            if stage_index >= ft.stage_index {
-                let offset = stage_index - ft.stage_index + 1;
+            // In pipeline terms, flush originates at pipeline stage
+            // ft.stage_index + 1. The pipe point between pipeline stage i
+            // and i+1 gets flush data if i >= flush_pipeline_idx.
+            let flush_pipeline_idx = ft.stage_index + 1;
+            if stage_index >= flush_pipeline_idx {
+                let offset = stage_index - flush_pipeline_idx;
                 if offset < ft.pipe_points.len() {
                     let records = &ft.pipe_points[offset];
                     format_pipe_point_records(records)
@@ -389,8 +400,7 @@ fn pipe_point_info(state: &DebuggerState, stage_index: usize) -> String {
                     "\u{00B7}\u{00B7}\u{00B7}".to_string()
                 }
             } else {
-                // Above the flush origin
-                "\u{2014}".to_string()
+                "\u{00B7}\u{00B7}\u{00B7}".to_string()
             }
         } else {
             "\u{00B7}\u{00B7}\u{00B7}".to_string()
@@ -401,7 +411,7 @@ fn pipe_point_info(state: &DebuggerState, stage_index: usize) -> String {
 /// Format records at a pipe point for display.
 fn format_pipe_point_records(records: &[pipelines_rs::Record]) -> String {
     if records.is_empty() {
-        "(filtered out)".to_string()
+        "\u{00B7}\u{00B7}\u{00B7}".to_string()
     } else if records.len() == 1 {
         let preview = records[0].as_str().trim_end();
         let truncated = if preview.len() > 30 {
@@ -445,11 +455,12 @@ fn render_watch_item(
     watch: &Watch,
     on_remove_watch: &Callback<String>,
 ) -> Html {
+    // Use pipeline_lines for stage names (includes source stage).
     let stage_name = state
-        .trace
-        .as_ref()
-        .and_then(|t| t.stage_names.get(watch.stage_index))
-        .cloned()
+        .pipeline_lines
+        .iter()
+        .find(|l| l.stage_index == watch.stage_index)
+        .map(|l| l.text.split_whitespace().next().unwrap_or("").to_string())
         .unwrap_or_default();
 
     let next_stage_name = state
@@ -504,7 +515,7 @@ fn render_watch_records(state: &DebuggerState, stage_index: usize) -> Html {
 
     let rc = trace.record_traces.len();
     let step = state.current_step - 1;
-    let pp_index = stage_index + 1;
+    let pp_index = stage_index;
 
     let records = if step < rc {
         let rt = &trace.record_traces[step];
@@ -512,8 +523,9 @@ fn render_watch_records(state: &DebuggerState, stage_index: usize) -> Html {
     } else {
         let flush_idx = step - rc;
         trace.flush_traces.get(flush_idx).and_then(|ft| {
-            if stage_index >= ft.stage_index {
-                let offset = stage_index - ft.stage_index + 1;
+            let flush_pipeline_idx = ft.stage_index + 1;
+            if stage_index >= flush_pipeline_idx {
+                let offset = stage_index - flush_pipeline_idx;
                 ft.pipe_points.get(offset)
             } else {
                 None
@@ -523,9 +535,7 @@ fn render_watch_records(state: &DebuggerState, stage_index: usize) -> Html {
 
     match records {
         Some(recs) if recs.is_empty() => {
-            html! {
-                <span class="watch-empty">{"(filtered out)"}</span>
-            }
+            html! {}
         }
         Some(recs) => {
             let count = recs.len();
@@ -545,9 +555,7 @@ fn render_watch_records(state: &DebuggerState, stage_index: usize) -> Html {
             }
         }
         None => {
-            html! {
-                <span class="watch-not-reached">{"not applicable"}</span>
-            }
+            html! {}
         }
     }
 }
