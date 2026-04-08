@@ -10,6 +10,8 @@ This project shows how data pipelines worked on mainframe systems, where data wa
 
 **Community:** [Blog](https://software-wrighter-lab.github.io/) | [Discord](https://discord.com/invite/Ctzk5uHggZ) | [YouTube](https://www.youtube.com/@SoftwareWrighter)
 
+![pipelines-rs landing page](images/landing.png)
+
 ![pipelines-rs Web UI](images/screenshot.png?ts=1770065141000)
 
 ## Status
