@@ -3,8 +3,8 @@
 use gloo::timers::callback::Timeout;
 use std::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 use web_sys::{Blob, HtmlAnchorElement, HtmlInputElement, HtmlSelectElement, Url};
 use yew::prelude::*;
 
@@ -949,6 +949,12 @@ pub fn app() -> Html {
                         <a href="https://github.com/sw-comp-history/pipelines-rs" target="_blank">{ "GitHub" }</a>
                         { " | MIT License | " }
                         { "\u{00A9} 2026 Michael A Wright" }
+                        { " | " }
+                        <a href="https://software-wrighter-lab.github.io/" target="_blank">{ "Blog" }</a>
+                        { " | " }
+                        <a href="https://discord.com/invite/Ctzk5uHggZ" target="_blank">{ "Discord" }</a>
+                        { " | " }
+                        <a href="https://www.youtube.com/@SoftwareWrighter" target="_blank">{ "YouTube" }</a>
                     </span>
                     <span class="footer-build">
                         { format!("Build: {}@{} {}", env!("BUILD_HOST"), env!("BUILD_COMMIT"), env!("BUILD_TIMESTAMP")) }
