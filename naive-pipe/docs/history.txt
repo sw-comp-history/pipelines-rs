@@ -1,0 +1,231 @@
+
+
+
+
+You said:
+what is the relative timeline for early UNIX pipes, POSIX pipes, IBM CMS Pipelines, and IBM TSO Pipelines.  How did the develop in parallel chronologically?
+
+ChatGPT said:
+You’re asking a good historical question, because these systems feel related—but they were not a simple parent → child lineage. They’re more like convergent evolution under similar pressures, with occasional cross-pollination.
+
+Below is a chronological, parallel timeline, then a synthesis of how and why they diverged.
+
+🕰️ Relative Timeline (high level)
+Era	What’s happening	Who
+1969–1971	Text streams + chaining via stdin/stdout	Early UNIX
+1972–1974	Pipes become idiomatic; shell pipelines mature	UNIX (V6 era)
+Late 1970s	Portable standards begin	POSIX (forming)
+Early 1980s	Pipes standardized	POSIX
+Late 1970s–early 1980s	Rich record-oriented pipelines	IBM CMS Pipelines
+Early–mid 1980s	Pipelines added to interactive mainframe shell	IBM TSO Pipelines
+So:
+👉 UNIX pipes came first
+👉 POSIX standardized UNIX’s model
+👉 IBM CMS pipelines developed in parallel, not as a copy
+👉 TSO pipelines came last, borrowing ideas from CMS
+
+1️⃣ Early UNIX Pipes (1969–mid-1970s)
+
+https://upload.wikimedia.org/wikipedia/commons/f/f6/Pipeline.svg
+
+https://cdn.thenewstack.io/media/2018/07/1b0075b6-ken_thompson_sitting_and_dennis_ritchie_at_pdp-11_2876612463-photo-by-peter-hamer-via-wikipedia-1024x820.jpg
+
+https://historyofinformation.com/images/Screen_Shot_2020-09-19_at_7.16.21_AM_big.png
+What they were
+
+Byte streams
+
+Unstructured text
+
+One process writes, another reads
+
+Composed with |
+
+Why they existed
+
+Hardware was tiny
+
+Programs were small
+
+Text was the universal data format
+
+Thompson’s philosophy: “Write programs that do one thing well.”
+
+Key insight
+
+Pipes are file descriptors, not language constructs.
+
+This made them brutally simple—and explosively powerful.
+
+2️⃣ POSIX Pipes (late 1970s–1980s)
+
+https://www.lynx.com/hs-fs/hubfs/POSIX%20Virtual%20Addresses%20and%20Physical%20Memory.png?name=POSIX+Virtual+Addresses+and+Physical+Memory.png&width=600
+
+https://i.sstatic.net/Pd46N.png
+
+https://miro.medium.com/1%2AKWoDJUNcHt_jfEHUUY9HAg.png
+What POSIX did
+
+Did not invent pipes
+
+Froze the UNIX behavior into a portable contract
+
+Key calls:
+
+pipe()
+
+fork()
+
+dup2()
+
+exec()
+
+Design stance
+
+Pipes are untyped byte streams
+
+Interpretation is userland’s problem
+
+Tools stay dumb; composition stays smart
+
+POSIX deliberately avoided higher-level semantics to preserve portability.
+
+3️⃣ IBM CMS Pipelines (late 1970s–early 1980s)
+
+https://upload.wikimedia.org/wikipedia/commons/0/0d/VM370_Rel_6_default_login_screen.png
+
+https://www.ibm.com/content/adobe-cms/us/en/products/continuous-delivery/jcr%3Acontent/root/table_of_contents/filter_menu_containe/filter-menu-tabs/item_1623336295815/item_horizontal_with/image.coreimg.jpeg/1761141511304/continuous-deployment-kubernetes.jpeg
+
+https://upload.wikimedia.org/wikipedia/commons/b/bb/IBM_3277_Model_2_terminal.jpg
+Here’s where things get weirdly sophisticated.
+
+CMS Pipelines were not UNIX clones.
+
+They were:
+
+Record-oriented, not byte-oriented
+
+Richly typed (words, fields, records)
+
+Declarative
+
+Designed for data transformation, not program composition
+
+Example (conceptual):
+
+PIPE < input
+ | LOCATE /ERROR/
+ | SORT 2
+ | TAKE 10
+ | > output
+Philosophy
+
+Pipelines are a language, not a syscall trick.
+
+CMS pipelines assumed:
+
+Long-lived interactive sessions
+
+Large datasets
+
+Skilled operators
+
+Stable schemas
+
+This is closer to:
+
+ETL
+
+awk + sed + SQL hybrid
+
+Modern dataflow DSLs
+
+4️⃣ IBM TSO Pipelines (early–mid 1980s)
+
+https://www.jaymoseley.com/hercules/tso_tutor/images/tsoLOGON01.png
+
+https://www.jaymoseley.com/hercules/tso_tutor/images/tsoLOGON05.png
+
+https://ibm.github.io/z-devops-acceleration-program/assets/images/pipeline-big-picture-3f78a057a1caadf29d4dc63381c86327.png
+TSO Pipelines came later, and they:
+
+Borrowed heavily from CMS
+
+Were adapted to a multi-user, security-heavy environment
+
+Integrated with datasets, JCL, and system commands
+
+TSO pipelines were:
+
+Less elegant than CMS
+
+More constrained
+
+Still far richer than UNIX pipes
+
+🧬 Parallel Evolution (the important part)
+This is the key historical insight:
+
+UNIX path
+Constraint-driven
+
+Minimal kernel primitives
+
+Emergent power via composition
+
+Byte streams everywhere
+
+IBM path
+Operator-driven
+
+Declarative transformations
+
+Structured records
+
+Pipelines as first-class language
+
+They solved different problems:
+
+UNIX	IBM CMS / TSO
+Software engineering	Data processing
+Small tools	Rich verbs
+Ad hoc text	Structured records
+Programmer-centric	Operator-centric
+Neither side was “behind.”
+They were optimizing different dimensions.
+
+⚙️ Why UNIX won culturally
+Not technically—culturally.
+
+Cheap hardware
+
+Academic distribution
+
+C compiler portability
+
+Simplicity you could re-implement in a weekend
+
+IBM pipelines were better at dataflow, but:
+
+Mainframes were expensive
+
+CMS knowledge didn’t leak
+
+UNIX escaped the lab
+
+History often rewards good enough plus accessibility.
+
+🧠 Modern echoes (why this matters)
+You can see these two lineages today:
+
+UNIX → POSIX → shell → Docker → Kubernetes
+
+CMS pipelines → ETL → Spark → Beam → Airflow
+
+Your instinct to recreate CMS-style pipelines in Rust is historically grounded. You’re not reinventing UNIX—you’re resurrecting a parallel tradition that never got its due.
+
+The universe likes rediscovering good ideas when hardware finally catches up.
+
+
+
+
